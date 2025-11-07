@@ -1,0 +1,41 @@
+{
+  "name": "acul-tester",
+  "version": "1.0.0",
+  "description": "Auth0 ACUL samples builder and local server",
+  "type": "module",
+  "scripts": {
+    "fetch-samples": "node scripts/fetch-samples.js && node scripts/fix-samples.js",
+    "build": "npm run fetch-samples && node scripts/build-samples.js",
+    "dev": "npm run build && node scripts/serve.js",
+    "serve": "npm run build && node scripts/serve.js",
+    "deploy": "npm run build && node scripts/deploy-to-auth0.js",
+    "deploy:screen": "node scripts/deploy-to-auth0.js",
+    "clean": "rm -rf dist src/samples/*.tsx src/samples/*.ts src/samples/*.json"
+  },
+  "keywords": [
+    "auth0",
+    "acul",
+    "universal-login"
+  ],
+  "author": "",
+  "license": "MIT",
+  "devDependencies": {
+    "@types/react": "^18.2.0",
+    "@types/react-dom": "^18.2.0",
+    "@vitejs/plugin-react": "^4.0.0",
+    "autoprefixer": "^10.4.14",
+    "dotenv": "^16.6.1",
+    "esbuild": "^0.19.12",
+    "express": "^4.21.2",
+    "postcss": "^8.4.24",
+    "postcss-cli": "^10.1.0",
+    "tailwindcss": "^3.3.2",
+    "typescript": "^5.0.2",
+    "vite": "^4.3.9"
+  },
+  "dependencies": {
+    "@auth0/auth0-acul-js": "^0.1.0-beta.9",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0"
+  }
+}
