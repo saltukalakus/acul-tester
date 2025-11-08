@@ -8,12 +8,8 @@ import { execSync } from 'child_process';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
-// Command line arguments
-const args = process.argv.slice(2);
-const useReactExamples = args.includes('--react') || args.includes('-r');
-
-// Extract pattern arguments (anything that's not a flag)
-const patterns = args.filter(arg => !arg.startsWith('-'));
+// Command line arguments - extract pattern arguments
+const patterns = process.argv.slice(2);
 
 /**
  * Get installed package version from package.json
@@ -21,8 +17,7 @@ const patterns = args.filter(arg => !arg.startsWith('-'));
 function getInstalledVersion() {
   const packageJsonPath = join(__dirname, '..', 'package.json');
   const packageJson = JSON.parse(readFileSync(packageJsonPath, 'utf-8'));
-  const packageName = useReactExamples ? '@auth0/auth0-acul-react' : '@auth0/auth0-acul-js';
-  const version = packageJson.dependencies[packageName];
+  const version = packageJson.dependencies['@auth0/auth0-acul-js'];
   
   // Remove ^ or ~ prefix if present
   return version.replace(/^[\^~]/, '');
@@ -30,7 +25,7 @@ function getInstalledVersion() {
 
 // Get version and construct GitHub URLs
 const INSTALLED_VERSION = getInstalledVersion();
-const EXAMPLE_SOURCE = useReactExamples ? 'auth0-acul-react' : 'auth0-acul-js';
+const EXAMPLE_SOURCE = 'auth0-acul-js';
 const GIT_TAG = `${EXAMPLE_SOURCE}@${INSTALLED_VERSION}`;
 const GITHUB_RAW_BASE = `https://raw.githubusercontent.com/auth0/universal-login/${GIT_TAG}/packages/${EXAMPLE_SOURCE}/examples`;
 const GITHUB_API_BASE = `https://api.github.com/repos/auth0/universal-login/contents/packages/${EXAMPLE_SOURCE}/examples?ref=${GIT_TAG}`;
@@ -247,30 +242,25 @@ async function processExamples() {
 }
 
 // Run the script
-const sourceLabel = useReactExamples ? 'React' : 'JavaScript';
+const sourceLabel = 'JavaScript';
 const patternInfo = patterns.length > 0 ? ` (filtering by: ${patterns.join(', ')})` : '';
 console.log(`📦 Fetching Auth0 ACUL ${sourceLabel} samples from git tag ${GIT_TAG}${patternInfo}...\n`);
 
-if (args.includes('--help') || args.includes('-h')) {
-  console.log('Usage: node fetch-samples.js [pattern...] [options]\n');
+if (patterns.includes('--help') || patterns.includes('-h')) {
+  console.log('Usage: node fetch-samples.js [pattern...]\n');
   console.log('Arguments:');
   console.log('  pattern        Filter samples by name pattern (e.g., "login" fetches all *login*.md files)');
   console.log('                 Multiple patterns can be specified: "login mfa signup"\n');
-  console.log('Options:');
-  console.log('  --react, -r    Fetch React examples from @auth0/auth0-acul-react');
-  console.log('  --help, -h     Show this help message\n');
   console.log('Examples:');
   console.log('  node fetch-samples.js                  # Fetch all JavaScript samples');
   console.log('  node scripts/fetch-samples.js login             # Fetch all samples with "login" in filename');
   console.log('  node scripts/fetch-samples.js login mfa         # Fetch samples matching "login" OR "mfa"');
-  console.log('  node scripts/fetch-samples.js --react           # Fetch all React samples');
-  console.log('  node scripts/fetch-samples.js login --react     # Fetch React samples with "login" in filename');
-  console.log('  npm run fetch login                             # Fetch JavaScript samples with "login"');
-  console.log('  npm run fetch:react signup                      # Fetch React samples with "signup"\n');
+  console.log('  npm run fetch                                   # Fetch all JavaScript samples');
+  console.log('  npm run fetch login                             # Fetch JavaScript samples with "login"\n');
   console.log('Behavior:');
   console.log('  - Fetches from git tag matching the installed package version');
   console.log('  - Automatically runs fix-samples.js after fetching');
-  console.log('  - Run this separately before "npm run build"');
+  console.log('  - Run this separately before "npm run start"');
   process.exit(0);
 }
 

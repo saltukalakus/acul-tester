@@ -21,9 +21,8 @@ npm install
 cp .env.example .env
 # Edit .env: AUTH0_DOMAIN, AUTH0_CLIENT_ID, AUTH0_CLIENT_SECRET
 
-# Fetch samples (JavaScript or React)
+# Fetch samples
 npm run fetch       # Fetch all JavaScript samples
-npm run fetch:react  # Fetch all React samples
 
 # Stop any running server, build, deploy to Auth0 tenant and serve again
 npm run start
@@ -40,8 +39,7 @@ Server runs on `http://localhost:PORT` (default: 5500, configurable in `.env`)
 
 | Command               | Description                                           |
 |-----------------------|-------------------------------------------------------|
-| `npm run fetch`       | Fetch all JavaScript samples                          |
-| `npm run fetch:react` | Fetch all React samples                               |
+| `npm run fetch`       | Fetch all JavaScript samples from @auth0/auth0-acul-js |
 | `npm run start`       | Stop server, build, deploy to Auth0, and serve        |
 | `npm run stop`        | Stop the running server                               |
 | `npm run clean`       | Reset Auth0 screens to defaults + remove local files  |
@@ -51,19 +49,19 @@ Server runs on `http://localhost:PORT` (default: 5500, configurable in `.env`)
 Fetch specific samples by pattern - pass arguments after the command:
 
 ```bash
-# Fetch JavaScript samples matching "login"
+# Fetch samples matching "login"
 npm run fetch login
 
-# Fetch React samples matching "signup"
-npm run fetch:react signup
+# Fetch samples matching "signup"
+npm run fetch signup
 
 # Fetch samples matching multiple patterns (login OR mfa)
 npm run fetch login mfa
-npm run fetch:react password reset
+npm run fetch password reset
 
 # Direct script usage (alternative)
-node scripts/fetch-samples.js login        # JavaScript samples
-node scripts/fetch-samples.js --react mfa  # React samples
+node scripts/fetch-samples.js login
+node scripts/fetch-samples.js login mfa
 ```
 
 Pattern matching is case-insensitive and matches any part of the filename.

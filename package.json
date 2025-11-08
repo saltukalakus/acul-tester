@@ -6,7 +6,6 @@
   "scripts": {
     "clean": "node scripts/cleanup-auth0.js; rm -rf dist src/samples/*.tsx src/samples/*.ts src/samples/*.json",
     "fetch": "npm run clean && node scripts/fetch-samples.js --",
-    "fetch:react": "npm run clean && node scripts/fetch-samples.js --react --",
     "start": "node scripts/stop-server.js && node scripts/build-samples.js && node scripts/deploy-to-auth0.js && node scripts/serve.js",
     "stop": "node scripts/stop-server.js"
   },
@@ -32,9 +31,6 @@
     "vite": "^4.3.9"
   },
   "dependencies": {
-    "@auth0/auth0-acul-js": "^1.0.0-alpha.2",
-    "@auth0/auth0-acul-react": "^1.0.0-alpha.2",
-    "react": "^18.2.0",
-    "react-dom": "^18.2.0"
+    "@auth0/auth0-acul-js": "^1.0.0-alpha.2"
   }
 }
