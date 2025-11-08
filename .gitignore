@@ -10,7 +10,12 @@ build/
 *.log
 
 # Fetched samples (auto-generated)
-src/samples/
+src/samples/*
+# But keep mock components
+!src/samples/components/
+
+# Temporary files
+.temp/
 
 # IDE
 .vscode/

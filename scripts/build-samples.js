@@ -58,10 +58,24 @@ for (const name of samples) {
   try {
     // First, create a wrapper file that renders the component
     const wrapperPath = join(SAMPLES_DIR, `${name}.wrapper.tsx`);
+    
+    // Check if the sample uses named export or default export
+    const sampleContent = readFileSync(sourcePath, 'utf-8');
+    const hasNamedExport = /export const \w+: React\.FC/.test(sampleContent);
+    const componentName = hasNamedExport 
+      ? sampleContent.match(/export const (\w+): React\.FC/)?.[1] 
+      : 'Component';
+    
+    const importStatement = hasNamedExport
+      ? `import { ${componentName} } from './${name}';`
+      : `import Component from './${name}';`;
+    
+    const componentToRender = hasNamedExport ? componentName : 'Component';
+    
     const wrapperCode = `
 import React from 'react';
 import { createRoot } from 'react-dom/client';
-import Component from './${name}';
+${importStatement}
 
 // Wait for DOM to be ready
 if (document.readyState === 'loading') {
@@ -80,7 +94,7 @@ function initComponent() {
   }
   
   const reactRoot = createRoot(container);
-  reactRoot.render(<Component />);
+  reactRoot.render(<${componentToRender} />);
 }
 `;
     writeFileSync(wrapperPath, wrapperCode, 'utf-8');
@@ -93,6 +107,7 @@ function initComponent() {
       jsx: 'automatic',
       platform: 'browser',
       target: ['es2022'], // Support top-level await
+      resolveExtensions: ['.tsx', '.ts', '.jsx', '.js'],
       // Note: Removed 'external' - now bundling everything including @auth0/auth0-acul-js
       minify: false, // Keep readable for development
       sourcemap: true,

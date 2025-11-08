@@ -135,43 +135,147 @@ async function updatePromptRendering(token, prompt, screen, screenFileName) {
  * Map screen file names to Auth0 prompt and screen names
  * Based on Auth0 API: /api/v2/prompts/{prompt}/screen/{screen}/rendering
  * 
- * Auth0 uses specific prompt types, and screens belong to those prompts.
- * For example: mfa-login-options screen belongs to the "mfa" prompt
+ * Complete mapping from Auth0 Universal Login Customization settings
  */
 function getPromptAndScreen(screenFileName) {
-  // Special mappings for screens that belong to different prompts
-  const specialMappings = {
-    // MFA screens belong to 'mfa' prompt
-    'mfa-login-options': 'mfa',
-    'mfa-enroll-result': 'mfa',
+  // Complete prompt to screen mappings
+  const PROMPT_SCREEN_MAP = {
+    // Captcha
+    'interstitial-captcha': { prompt: 'captcha', screen: 'interstitial-captcha' },
     
-    // MFA OTP enrollment belongs to 'mfa-otp' prompt
-    'mfa-otp-enrollment-code': 'mfa-otp',
+    // Common
+    'redeem-ticket': { prompt: 'common', screen: 'redeem-ticket' },
     
-    // Organization screens
-    'organization-picker': 'organizations',
-    'organization-selection': 'organizations',
+    // Consent
+    'consent': { prompt: 'consent', screen: 'consent' },
+    'customized-consent': { prompt: 'customized-consent', screen: 'customized-consent' },
     
-    // Device code confirmation
-    'device-code-confirmation': 'device-flow',
+    // Device Flow
+    'device-code-activation': { prompt: 'device-flow', screen: 'device-code-activation' },
+    'device-code-activation-allowed': { prompt: 'device-flow', screen: 'device-code-activation-allowed' },
+    'device-code-activation-denied': { prompt: 'device-flow', screen: 'device-code-activation-denied' },
+    'device-code-confirmation': { prompt: 'device-flow', screen: 'device-code-confirmation' },
     
-    // Email verification screens
-    'email-verification-result': 'email-verification',
+    // Email Identifier Challenge
+    'email-identifier-challenge': { prompt: 'email-identifier-challenge', screen: 'email-identifier-challenge' },
     
-    // Common prompt screens
-    'redeem-ticket': 'common',
+    // Email OTP Challenge
+    'email-otp-challenge': { prompt: 'email-otp-challenge', screen: 'email-otp-challenge' },
     
-    // Logout screens belong to 'logout' prompt
-    'logout-complete': 'logout',
+    // Email Verification
+    'email-verification-result': { prompt: 'email-verification', screen: 'email-verification-result' },
     
-    // Reset password
-    'reset-password-request': 'reset-password'
+    // Invitation
+    'accept-invitation': { prompt: 'invitation', screen: 'accept-invitation' },
+    
+    // Login
+    'login': { prompt: 'login', screen: 'login' },
+    'login-email-verification': { prompt: 'login-email-verification', screen: 'login-email-verification' },
+    'login-id': { prompt: 'login-id', screen: 'login-id' },
+    'login-password': { prompt: 'login-password', screen: 'login-password' },
+    
+    // Login Passwordless
+    'login-passwordless-email-code': { prompt: 'login-passwordless', screen: 'login-passwordless-email-code' },
+    'login-passwordless-sms-otp': { prompt: 'login-passwordless', screen: 'login-passwordless-sms-otp' },
+    
+    // Logout
+    'logout': { prompt: 'logout', screen: 'logout' },
+    'logout-aborted': { prompt: 'logout', screen: 'logout-aborted' },
+    'logout-complete': { prompt: 'logout', screen: 'logout-complete' },
+    
+    // MFA
+    'mfa-begin-enroll-options': { prompt: 'mfa', screen: 'mfa-begin-enroll-options' },
+    'mfa-detect-browser-capabilities': { prompt: 'mfa', screen: 'mfa-detect-browser-capabilities' },
+    'mfa-enroll-result': { prompt: 'mfa', screen: 'mfa-enroll-result' },
+    'mfa-login-options': { prompt: 'mfa', screen: 'mfa-login-options' },
+    
+    // MFA Email
+    'mfa-email-challenge': { prompt: 'mfa-email', screen: 'mfa-email-challenge' },
+    'mfa-email-list': { prompt: 'mfa-email', screen: 'mfa-email-list' },
+    
+    // MFA OTP
+    'mfa-otp-challenge': { prompt: 'mfa-otp', screen: 'mfa-otp-challenge' },
+    'mfa-otp-enrollment-code': { prompt: 'mfa-otp', screen: 'mfa-otp-enrollment-code' },
+    'mfa-otp-enrollment-qr': { prompt: 'mfa-otp', screen: 'mfa-otp-enrollment-qr' },
+    
+    // MFA Phone
+    'mfa-phone-challenge': { prompt: 'mfa-phone', screen: 'mfa-phone-challenge' },
+    'mfa-phone-enrollment': { prompt: 'mfa-phone', screen: 'mfa-phone-enrollment' },
+    
+    // MFA Push
+    'mfa-push-challenge-push': { prompt: 'mfa-push', screen: 'mfa-push-challenge-push' },
+    'mfa-push-enrollment-qr': { prompt: 'mfa-push', screen: 'mfa-push-enrollment-qr' },
+    'mfa-push-list': { prompt: 'mfa-push', screen: 'mfa-push-list' },
+    'mfa-push-welcome': { prompt: 'mfa-push', screen: 'mfa-push-welcome' },
+    
+    // MFA Recovery Code
+    'mfa-recovery-code-challenge': { prompt: 'mfa-recovery-code', screen: 'mfa-recovery-code-challenge' },
+    'mfa-recovery-code-challenge-new-code': { prompt: 'mfa-recovery-code', screen: 'mfa-recovery-code-challenge-new-code' },
+    'mfa-recovery-code-enrollment': { prompt: 'mfa-recovery-code', screen: 'mfa-recovery-code-enrollment' },
+    
+    // MFA SMS
+    'mfa-country-codes': { prompt: 'mfa-sms', screen: 'mfa-country-codes' },
+    'mfa-sms-challenge': { prompt: 'mfa-sms', screen: 'mfa-sms-challenge' },
+    'mfa-sms-enrollment': { prompt: 'mfa-sms', screen: 'mfa-sms-enrollment' },
+    'mfa-sms-list': { prompt: 'mfa-sms', screen: 'mfa-sms-list' },
+    
+    // MFA Voice
+    'mfa-voice-challenge': { prompt: 'mfa-voice', screen: 'mfa-voice-challenge' },
+    'mfa-voice-enrollment': { prompt: 'mfa-voice', screen: 'mfa-voice-enrollment' },
+    
+    // MFA WebAuthn
+    'mfa-webauthn-change-key-nickname': { prompt: 'mfa-webauthn', screen: 'mfa-webauthn-change-key-nickname' },
+    'mfa-webauthn-enrollment-success': { prompt: 'mfa-webauthn', screen: 'mfa-webauthn-enrollment-success' },
+    'mfa-webauthn-error': { prompt: 'mfa-webauthn', screen: 'mfa-webauthn-error' },
+    'mfa-webauthn-not-available-error': { prompt: 'mfa-webauthn', screen: 'mfa-webauthn-not-available-error' },
+    'mfa-webauthn-platform-challenge': { prompt: 'mfa-webauthn', screen: 'mfa-webauthn-platform-challenge' },
+    'mfa-webauthn-platform-enrollment': { prompt: 'mfa-webauthn', screen: 'mfa-webauthn-platform-enrollment' },
+    'mfa-webauthn-roaming-challenge': { prompt: 'mfa-webauthn', screen: 'mfa-webauthn-roaming-challenge' },
+    'mfa-webauthn-roaming-enrollment': { prompt: 'mfa-webauthn', screen: 'mfa-webauthn-roaming-enrollment' },
+    
+    // Organizations
+    'organization-picker': { prompt: 'organizations', screen: 'organization-picker' },
+    'organization-selection': { prompt: 'organizations', screen: 'organization-selection' },
+    
+    // Passkeys
+    'passkey-enrollment': { prompt: 'passkeys', screen: 'passkey-enrollment' },
+    'passkey-enrollment-local': { prompt: 'passkeys', screen: 'passkey-enrollment-local' },
+    
+    // Phone Identifier Challenge
+    'phone-identifier-challenge': { prompt: 'phone-identifier-challenge', screen: 'phone-identifier-challenge' },
+    
+    // Phone Identifier Enrollment
+    'phone-identifier-enrollment': { prompt: 'phone-identifier-enrollment', screen: 'phone-identifier-enrollment' },
+    
+    // Reset Password
+    'reset-password': { prompt: 'reset-password', screen: 'reset-password' },
+    'reset-password-email': { prompt: 'reset-password', screen: 'reset-password-email' },
+    'reset-password-error': { prompt: 'reset-password', screen: 'reset-password-error' },
+    'reset-password-mfa-email-challenge': { prompt: 'reset-password', screen: 'reset-password-mfa-email-challenge' },
+    'reset-password-mfa-otp-challenge': { prompt: 'reset-password', screen: 'reset-password-mfa-otp-challenge' },
+    'reset-password-mfa-phone-challenge': { prompt: 'reset-password', screen: 'reset-password-mfa-phone-challenge' },
+    'reset-password-mfa-push-challenge-push': { prompt: 'reset-password', screen: 'reset-password-mfa-push-challenge-push' },
+    'reset-password-mfa-recovery-code-challenge': { prompt: 'reset-password', screen: 'reset-password-mfa-recovery-code-challenge' },
+    'reset-password-mfa-sms-challenge': { prompt: 'reset-password', screen: 'reset-password-mfa-sms-challenge' },
+    'reset-password-mfa-voice-challenge': { prompt: 'reset-password', screen: 'reset-password-mfa-voice-challenge' },
+    'reset-password-mfa-webauthn-platform-challenge': { prompt: 'reset-password', screen: 'reset-password-mfa-webauthn-platform-challenge' },
+    'reset-password-mfa-webauthn-roaming-challenge': { prompt: 'reset-password', screen: 'reset-password-mfa-webauthn-roaming-challenge' },
+    'reset-password-request': { prompt: 'reset-password', screen: 'reset-password-request' },
+    'reset-password-success': { prompt: 'reset-password', screen: 'reset-password-success' },
+    
+    // Signup
+    'signup': { prompt: 'signup', screen: 'signup' },
+    'signup-id': { prompt: 'signup-id', screen: 'signup-id' },
+    'signup-password': { prompt: 'signup-password', screen: 'signup-password' },
+    
+    // Brute Force Protection (if they exist in samples)
+    'brute-force-protection-unblock': { prompt: 'login', screen: 'brute-force-protection-unblock' },
+    'brute-force-protection-unblock-success': { prompt: 'login', screen: 'brute-force-protection-unblock-success' },
+    'brute-force-protection-unblock-failure': { prompt: 'login', screen: 'brute-force-protection-unblock-failure' },
   };
   
-  // Return special mapping if exists, otherwise prompt === screen
-  return specialMappings[screenFileName] 
-    ? { prompt: specialMappings[screenFileName], screen: screenFileName }
-    : { prompt: screenFileName, screen: screenFileName };
+  // Return mapping or fallback to screen name as both prompt and screen
+  return PROMPT_SCREEN_MAP[screenFileName] || { prompt: screenFileName, screen: screenFileName };
 }
 
 /**

@@ -1,38 +1,57 @@
 #!/usr/bin/env node
 
-import { writeFileSync, mkdirSync, existsSync } from 'fs';
+import { writeFileSync, mkdirSync, existsSync, readFileSync } from 'fs';
 import { join, dirname } from 'path';
 import { fileURLToPath } from 'url';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
-const GITHUB_RAW_BASE = 'https://raw.githubusercontent.com/auth0/universal-login/master/packages/auth0-acul-js/examples';
+// Command line argument to select example source
+const args = process.argv.slice(2);
+const useReactExamples = args.includes('--react') || args.includes('-r');
+
+/**
+ * Get installed package version from package.json
+ */
+function getInstalledVersion() {
+  const packageJsonPath = join(__dirname, '..', 'package.json');
+  const packageJson = JSON.parse(readFileSync(packageJsonPath, 'utf-8'));
+  const packageName = useReactExamples ? '@auth0/auth0-acul-react' : '@auth0/auth0-acul-js';
+  const version = packageJson.dependencies[packageName];
+  
+  // Remove ^ or ~ prefix if present
+  return version.replace(/^[\^~]/, '');
+}
+
+// Get version and construct GitHub URLs
+const INSTALLED_VERSION = getInstalledVersion();
+const EXAMPLE_SOURCE = useReactExamples ? 'auth0-acul-react' : 'auth0-acul-js';
+const GIT_TAG = `${EXAMPLE_SOURCE}@${INSTALLED_VERSION}`;
+const GITHUB_RAW_BASE = `https://raw.githubusercontent.com/auth0/universal-login/${GIT_TAG}/packages/${EXAMPLE_SOURCE}/examples`;
+const GITHUB_API_BASE = `https://api.github.com/repos/auth0/universal-login/contents/packages/${EXAMPLE_SOURCE}/examples?ref=${GIT_TAG}`;
 const OUTPUT_DIR = join(__dirname, '..', 'src', 'samples');
 
-// List of example files to fetch
-const EXAMPLE_FILES = [
-  'login.md',
-  'login-id.md',
-  'login-password.md',
-  'signup.md',
-  'signup-id.md',
-  'signup-password.md',
-  'consent.md',
-  'device-code-confirmation.md',
-  'email-otp-challenge.md',
-  'email-verification-result.md',
-  'login-email-verification.md',
-  'logout.md',
-  'logout-complete.md',
-  'mfa-enroll-result.md',
-  'mfa-login-options.md',
-  'mfa-otp-enrollment-code.md',
-  'organization-picker.md',
-  'organization-selection.md',
-  'redeem-ticket.md',
-  'reset-password-request.md'
-];
+/**
+ * Fetch list of example files from GitHub API
+ */
+async function getExampleFiles() {
+  console.log(`📋 Discovering example files from ${GIT_TAG}...\n`);
+  
+  const response = await fetch(GITHUB_API_BASE);
+  if (!response.ok) {
+    throw new Error(`Failed to fetch file list from tag ${GIT_TAG}: ${response.status}\nMake sure the git tag exists in the repository.`);
+  }
+  
+  const files = await response.json();
+  const mdFiles = files
+    .filter(file => file.name.endsWith('.md') && file.type === 'file')
+    .map(file => file.name)
+    .sort();
+  
+  console.log(`✓ Found ${mdFiles.length} example files\n`);
+  return mdFiles;
+}
 
 /**
  * Extract React/TailwindCSS code blocks from markdown
@@ -150,6 +169,9 @@ async function processExamples() {
     mkdirSync(OUTPUT_DIR, { recursive: true });
   }
   
+  // Get list of example files dynamically
+  const EXAMPLE_FILES = await getExampleFiles();
+  
   const allSamples = {};
   
   for (const filename of EXAMPLE_FILES) {
@@ -160,8 +182,10 @@ async function processExamples() {
       const screenName = filename.replace('.md', '');
       
       if (samples.length > 0) {
-        // Take the most complete sample (usually the last one with TailwindCSS)
-        const bestSample = samples[samples.length - 1];
+        // Take the longest sample (most complete code)
+        const bestSample = samples.reduce((longest, current) => 
+          current.code.length > longest.code.length ? current : longest
+        );
         const componentCode = convertToComponent(bestSample, screenName);
         
         // Save as individual component file
@@ -202,7 +226,19 @@ async function processExamples() {
 }
 
 // Run the script
-console.log('📦 Fetching Auth0 ACUL samples from GitHub...\n');
+const sourceLabel = useReactExamples ? 'React' : 'JavaScript';
+console.log(`📦 Fetching Auth0 ACUL ${sourceLabel} samples from git tag ${GIT_TAG}...\n`);
+
+if (args.includes('--help') || args.includes('-h')) {
+  console.log('Usage: node fetch-samples.js [options]\n');
+  console.log('Options:');
+  console.log('  --react, -r    Fetch React examples from @auth0/auth0-acul-react');
+  console.log('  --help, -h     Show this help message');
+  console.log('\nDefault: Fetches JavaScript examples from @auth0/auth0-acul-js');
+  console.log('\nNote: Fetches from git tag matching the installed package version');
+  process.exit(0);
+}
+
 processExamples().catch(error => {
   console.error('Fatal error:', error);
   process.exit(1);

@@ -5,7 +5,9 @@
   "type": "module",
   "scripts": {
     "fetch-samples": "node scripts/fetch-samples.js && node scripts/fix-samples.js",
+    "fetch-samples:react": "node scripts/fetch-samples.js --react && node scripts/fix-samples.js",
     "build": "npm run fetch-samples && node scripts/build-samples.js",
+    "build:react": "npm run fetch-samples:react && node scripts/build-samples.js",
     "dev": "npm run build && node scripts/serve.js",
     "serve": "npm run build && node scripts/serve.js",
     "deploy": "npm run build && node scripts/deploy-to-auth0.js",
@@ -34,7 +36,8 @@
     "vite": "^4.3.9"
   },
   "dependencies": {
-    "@auth0/auth0-acul-js": "^0.1.0-beta.9",
+    "@auth0/auth0-acul-js": "^1.0.0-alpha.2",
+    "@auth0/auth0-acul-react": "^1.0.0-alpha.2",
     "react": "^18.2.0",
     "react-dom": "^18.2.0"
   }

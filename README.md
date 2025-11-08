@@ -29,25 +29,28 @@ Server will run on **http://localhost:5500**
 
 ### Built Assets
 
-- **CSS File**: `http://localhost:5500/styles.css` - Tailwind CSS compiled and minified
-- **JavaScript Components**: `http://localhost:5500/{screen}/component.js` - Compiled React modules
-- **20 Sample Screens**: login, signup, MFA, consent, logout, device-flow, organizations, etc.
+- **CSS File**: `http://localhost:5500/v-{hash}/styles.css` - Tailwind CSS compiled and minified
+- **JavaScript Components**: `http://localhost:5500/v-{hash}/{screen}/component.js` - Compiled React modules
+- **81 Sample Screens**: All Auth0 Universal Login screens including login variants, MFA (35+ screens), password reset flows, passkeys, WebAuthn, and more
 
 ### File Structure
 
 ```
 dist/
-├── styles.css                    # ← Deployed to Auth0
-├── index.html                    # Server homepage
-├── login/
-│   ├── component.tsx            # Source code
-│   ├── component.js             # ← Compiled module deployed to Auth0
-│   └── component.js.map         # Source map
-├── signup/
-│   ├── component.tsx
-│   ├── component.js             # ← Deployed to Auth0
-│   └── component.js.map
-└── ... (18 more screens)
+├── .current-version             # Current version hash
+├── .versions                    # Version history
+└── v-{hash}/                    # Versioned build directory
+    ├── styles.css               # ← Deployed to Auth0
+    ├── index.html               # Server homepage
+    ├── login/
+    │   ├── component.tsx        # Source code
+    │   ├── component.js         # ← Compiled module deployed to Auth0
+    │   └── component.js.map     # Source map
+    ├── signup/
+    │   ├── component.tsx
+    │   ├── component.js         # ← Deployed to Auth0
+    │   └── component.js.map
+    └── ... (79 more screens)
 ```
 
 ## 🚀 Automated Deployment
@@ -67,17 +70,50 @@ For each screen, the script configures Auth0 to inject:
 
 ## 🔄 Complete Workflow
 
+### Example Source Options
+
+Choose between two Auth0 example repositories:
+
+**JavaScript Examples** (default - 81 screens, 75 working):
+```bash
+npm run build               # Uses auth0-acul-js examples
+npm run fetch-samples       # Fetch JS examples only
+```
+
+**React Examples** (76 screens - requires `@auth0/auth0-acul-react` package):
+```bash
+# First, install the React package
+npm install @auth0/auth0-acul-react
+
+# Then build and deploy
+npm run build:react         # Uses auth0-acul-react examples  
+npm run deploy              # Deploy to Auth0
+
+# Or fetch only
+npm run fetch-samples:react # Fetch React examples only
+```
+
+**Build Success Rates**:
+- JavaScript examples: 75/81 screens (93%) ✅ **Recommended**
+- React examples: ~16/76 screens (21%) - Many require custom components
+
+**Recommendation**: Use the JavaScript examples (default) as they have much better compatibility and don't require additional packages.
+
 ### 1. Fetch & Build
 
 ```bash
-npm run build
+npm run build               # Default: JavaScript examples
+# OR
+npm run build:react         # React examples
 ```
 
 This command:
-- Fetches latest samples from Auth0 GitHub repository
+- Fetches samples from the **installed package version's git tag** (ensures compatibility)
 - Compiles Tailwind CSS → `dist/styles.css`
 - Compiles React components → `dist/{screen}/component.js`
-- Creates 20 ready-to-deploy screens
+- Creates 81 JavaScript or 76 React ready-to-deploy screens
+
+**Version Matching**: The script automatically fetches examples from the git tag matching your installed `@auth0/auth0-acul-js` or `@auth0/auth0-acul-react` version in `package.json`, ensuring the examples match the SDK APIs you're using.
 
 ### 2. Start Local Server
 
@@ -176,8 +212,30 @@ acul-tester/
 2. **Extract**: Pulls React/TailwindCSS code samples from markdown
 3. **Build**: 
    - Compiles Tailwind CSS into single `styles.css`
-   - Copies component files to `dist/<screen-name>/component.tsx`
+   - Bundles React components with esbuild → `dist/<screen-name>/component.js`
+   - Resolves imports using mock component structure
 4. **Serve**: Static server on port 5500 with CORS enabled
+
+### Mock Components Architecture
+
+The samples reference components that don't exist in the Auth0 SDK packages. Rather than modifying the fetched samples, we provide mock components that match the import paths:
+
+**Root-level components** (`components/`):
+- `Logo.tsx` - Auth0 branding logo component
+- `Button.tsx` - Primary action button component
+
+**Sample-specific components** (`src/samples/components/`):
+- `Title.tsx` - Screen title and description
+- `FederatedLogin.tsx` - Social login buttons
+- `Links.tsx` - Navigation links (login/signup)
+- `ErrorMessages.tsx` - Error display component
+
+This approach:
+- ✅ Keeps sample code unchanged (matches Auth0's original structure)
+- ✅ No need for fix-samples.js script
+- ✅ Single mock file can fix dozens of samples
+- ✅ Easy to extend with additional components
+- ✅ Build process automatically resolves imports
 
 ## 📚 Available Screens
 

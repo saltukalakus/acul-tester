@@ -43,8 +43,8 @@ npm run deploy
 ```
 
 This will:
-- Build all samples from GitHub
-- Deploy all 20 screens to Auth0
+- Build all samples from GitHub (81 screens)
+- Deploy all available screens to Auth0
 - Configure CSS URL for each
 
 ### Deploy Specific Screens
@@ -94,20 +94,23 @@ PATCH https://{domain}/api/v2/prompts/{prompt}/screen/{screen}/rendering
 
 ### 3. Screen to Prompt Mapping
 
-The script maps screen names to Auth0 prompt types:
+The script maps screen names to Auth0 prompt types. Here are the main mappings:
 
 | Screen | Prompt Type |
 |--------|-------------|
-| `login`, `login-id`, `login-password` | `login` |
+| `login`, `login-id`, `login-password`, `login-email-verification`, `login-passwordless-*` | `login` |
 | `signup`, `signup-id`, `signup-password` | `signup` |
-| `mfa-login-options`, `mfa-enroll-result`, `mfa-otp-enrollment-code` | `mfa` |
-| `consent` | `consent` |
-| `device-code-confirmation` | `device-code-confirmation` |
-| `email-verification-result` | `email-verification` |
+| `mfa-*` (35+ screens) | `mfa` |
+| `consent`, `customized-consent` | `consent` |
+| `device-code-*` | `device-code-confirmation` |
+| `email-*` | `email-verification` |
 | `organization-picker`, `organization-selection` | `organization` |
-| `reset-password-request` | `reset-password` |
-| `logout`, `logout-complete` | `logout` |
-| `redeem-ticket` | `redeem-ticket` |
+| `reset-password-*` (15+ screens) | `reset-password` |
+| `logout`, `logout-complete`, `logout-aborted` | `logout` |
+| `redeem-ticket`, `accept-invitation` | `redeem-ticket` |
+| `passkey-*`, `phone-identifier-*` | Various |
+
+**Total: 81 screens** covering all Auth0 Universal Login flows.
 
 ## Error Handling
 
@@ -154,7 +157,7 @@ CSS URL: http://localhost:5500/styles.css
 🔐 Authenticating with Auth0...
 ✓ Authentication successful
 
-📦 Found 20 screens to deploy
+📦 Found 81 screens to deploy
 
 📝 Updating login/login...
   ✓ Updated successfully
@@ -170,12 +173,13 @@ CSS URL: http://localhost:5500/styles.css
 
 ==================================================
 📊 Deployment Summary:
-  ✓ Success: 20
+  ✓ Success: 72
+  ⚠️  Skipped: 9 (missing dependencies)
   ❌ Failed: 0
-  📝 Total: 20
+  📝 Total: 81
 ==================================================
 
-✅ All screens deployed successfully!
+✅ All available screens deployed successfully!
 
 💡 Your Auth0 tenant is now using:
    CSS: http://localhost:5500/styles.css
