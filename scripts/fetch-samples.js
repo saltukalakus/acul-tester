@@ -240,6 +240,10 @@ async function processExamples() {
   console.log('✓ Created manifest.json');
   
   console.log(`\n✅ Successfully processed ${Object.keys(allSamples).length} examples`);
+  
+  // Run fix-samples.js automatically
+  console.log('\n🔧 Running fix-samples.js...');
+  execSync('node scripts/fix-samples.js', { stdio: 'inherit' });
 }
 
 // Run the script
@@ -257,12 +261,15 @@ if (args.includes('--help') || args.includes('-h')) {
   console.log('  --help, -h     Show this help message\n');
   console.log('Examples:');
   console.log('  node fetch-samples.js                  # Fetch all JavaScript samples');
-  console.log('  node fetch-samples.js login             # Fetch all samples with "login" in filename');
-  console.log('  node fetch-samples.js login mfa         # Fetch samples matching "login" OR "mfa"');
-  console.log('  node fetch-samples.js --react           # Fetch all React samples');
-  console.log('  node fetch-samples.js login --react     # Fetch React samples with "login" in filename\n');
+  console.log('  node scripts/fetch-samples.js login             # Fetch all samples with "login" in filename');
+  console.log('  node scripts/fetch-samples.js login mfa         # Fetch samples matching "login" OR "mfa"');
+  console.log('  node scripts/fetch-samples.js --react           # Fetch all React samples');
+  console.log('  node scripts/fetch-samples.js login --react     # Fetch React samples with "login" in filename');
+  console.log('  npm run fetch login                             # Fetch JavaScript samples with "login"');
+  console.log('  npm run fetch:react signup                      # Fetch React samples with "signup"\n');
   console.log('Behavior:');
   console.log('  - Fetches from git tag matching the installed package version');
+  console.log('  - Automatically runs fix-samples.js after fetching');
   console.log('  - Run this separately before "npm run build"');
   process.exit(0);
 }

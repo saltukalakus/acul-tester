@@ -105,7 +105,7 @@ const GITHUB_API_BASE = `https://api.github.com/repos/auth0/universal-login/cont
 
 ```bash
 # Fetch all samples
-npm run fetch-samples
+npm run fetch
 
 # Fetch specific patterns
 node scripts/fetch-samples.js login        # All *login* samples

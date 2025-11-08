@@ -5,12 +5,10 @@
   "type": "module",
   "scripts": {
     "clean": "rm -rf dist src/samples/*.tsx src/samples/*.ts src/samples/*.json",
-    "fetch-samples": "npm run clean && node scripts/fetch-samples.js && node scripts/fix-samples.js",
-    "fetch-samples:react": "npm run clean && node scripts/fetch-samples.js --react && node scripts/fix-samples.js",
-    "build": "node scripts/build-samples.js",
-    "deploy": "npm run build && node scripts/deploy-to-auth0.js",
-    "serve": "npm run deploy && node scripts/serve.js",
-    "serve:stop": "node scripts/stop-server.js"
+    "fetch": "npm run clean && node scripts/fetch-samples.js --",
+    "fetch:react": "npm run clean && node scripts/fetch-samples.js --react --",
+    "serve": "node scripts/build-samples.js && node scripts/deploy-to-auth0.js && node scripts/serve.js",
+    "stop": "node scripts/stop-server.js"
   },
   "keywords": [
     "auth0",

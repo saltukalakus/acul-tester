@@ -22,17 +22,14 @@ cp .env.example .env
 # Edit .env: AUTH0_DOMAIN, AUTH0_CLIENT_ID, AUTH0_CLIENT_SECRET
 
 # Fetch samples (JavaScript or React)
-npm run fetch-samples        # Fetch all JavaScript samples
-npm run fetch-samples:react  # Fetch all React samples
+npm run fetch       # Fetch all JavaScript samples
+npm run fetch:react  # Fetch all React samples
 
-# Build and serve
-npm run build                # Build samples into dist/
-npm run serve                # Start local server
+# Build, deploy to Auth0 tenant and serve
+npm run serve
 
-# Deploy to Auth0 tenant
-npm run deploy               # Deploy all screens
-npm run deploy:screen login  # Deploy specific screen
-```
+# Stop the server
+npm run stop
 
 Server runs on `http://localhost:PORT` (default: 5500, configurable in `.env`)
 
@@ -40,25 +37,33 @@ Server runs on `http://localhost:PORT` (default: 5500, configurable in `.env`)
 
 | Command | Description |
 |---------|-------------|
-| `npm run fetch-samples` | Fetch all JavaScript samples (cleans previous) |
-| `npm run fetch-samples:react` | Fetch all React samples (cleans previous) |
-| `npm run build` | Build fetched samples into deployable assets |
-| `npm run serve` | Build and start server (default port: 5500) |
-| `npm run deploy` | Deploy all screens to Auth0 tenant |
-| `npm run deploy:screen <name...>` | Deploy specific screen(s) |
-| `npm run serve:stop` | Stop the running server |
+| `npm run fetch` | Fetch all JavaScript samples (cleans previous) |
+| `npm run fetch:react` | Fetch all React samples (cleans previous) |
+| `npm run serve` | Build, deploy and start the server (default port: 5500) |
+| `npm run stop` | Stop the running server |
 | `npm run clean` | Remove built files and fetched samples |
-| `npm run dev` | Full workflow: fetch + build + serve |
 
-### Partial Fetching
+### Filtering Samples
 
-Fetch specific samples by pattern:
+Fetch specific samples by pattern - pass arguments after the command:
 
 ```bash
-node scripts/fetch-samples.js login        # Fetch all *login* samples
-node scripts/fetch-samples.js login mfa    # Fetch login OR mfa samples  
-node scripts/fetch-samples.js --react signup  # Fetch React signup samples
+# Fetch JavaScript samples matching "login"
+npm run fetch login
+
+# Fetch React samples matching "signup"
+npm run fetch:react signup
+
+# Fetch samples matching multiple patterns (login OR mfa)
+npm run fetch login mfa
+npm run fetch:react password reset
+
+# Direct script usage (alternative)
+node scripts/fetch-samples.js login        # JavaScript samples
+node scripts/fetch-samples.js --react mfa  # React samples
 ```
+
+Pattern matching is case-insensitive and matches any part of the filename.
 
 ## Configuration
 
@@ -135,8 +140,9 @@ acul-tester/
 
 ## Notes
 
-- Files in `src/samples/` and `dist/` are auto-generated - don't edit manually
-- Samples are fetched from git tags matching your installed package version
+- Files in `dist/` are auto-generated - don't edit manually
+- Samples are fetched from git tags matching your installed package version to `src/samples/`
+- If you update the files in `src/samples/` restart the server for the chanages to take affect
 - Keep server running while testing Auth0 login flows
 - CSS is shared across all screens
 - For local testing only - not for production use
