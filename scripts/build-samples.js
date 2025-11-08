@@ -5,17 +5,33 @@ import { fileURLToPath } from 'url';
 import { execSync } from 'child_process';
 import * as esbuild from 'esbuild';
 import crypto from 'crypto';
+import dotenv from 'dotenv';
+
+// Load environment variables
+dotenv.config();
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 const SAMPLES_DIR = join(__dirname, '..', 'src', 'samples');
 const DIST_DIR = join(__dirname, '..', 'dist');
+const PORT = parseInt(process.env.PORT || '5500', 10);
+
+console.log('🔨 Building samples...\n');
+
+// Check if samples exist
+if (!existsSync(SAMPLES_DIR) || !existsSync(join(SAMPLES_DIR, 'manifest.json'))) {
+  console.error('❌ No samples found in src/samples/');
+  console.error('   Run "npm run fetch-samples" first to download samples.\n');
+  console.error('   Examples:');
+  console.error('     npm run fetch-samples           # Fetch all samples');
+  console.error('     npm run fetch-samples login     # Fetch only login-related samples');
+  process.exit(1);
+}
 
 // Generate a version hash for cache busting
 const VERSION_HASH = crypto.randomBytes(8).toString('hex');
 const OUTPUT_DIR = join(DIST_DIR, `v-${VERSION_HASH}`);
 
-console.log('Building...\n');
 console.log(`📦 Version: v-${VERSION_HASH}\n`);
 
 // Clean old versions but keep dist directory
@@ -135,7 +151,7 @@ const index = `<!DOCTYPE html>
 <h1 class="text-3xl font-bold mb-6">Auth0 ACUL Samples</h1>
 <div class="bg-blue-50 p-4 rounded mb-6">
 <p class="font-semibold">Version: <code>v-${VERSION_HASH}</code></p>
-<p class="font-semibold">CSS: <code>http://localhost:5500/v-${VERSION_HASH}/styles.css</code> (${Math.round(css.length/1024)} KB)</p>
+<p class="font-semibold">CSS: <code>http://localhost:${PORT}/v-${VERSION_HASH}/styles.css</code> (${Math.round(css.length/1024)} KB)</p>
 </div>
 <div class="grid grid-cols-3 gap-4">
 ${samples.map(s => `<a href="/v-${VERSION_HASH}/${s}/component.tsx" class="p-4 bg-white rounded shadow">${s}</a>`).join('')}

@@ -4,15 +4,13 @@
   "description": "Auth0 ACUL samples builder and local server",
   "type": "module",
   "scripts": {
-    "fetch-samples": "node scripts/fetch-samples.js && node scripts/fix-samples.js",
-    "fetch-samples:react": "node scripts/fetch-samples.js --react && node scripts/fix-samples.js",
-    "build": "npm run fetch-samples && node scripts/build-samples.js",
-    "build:react": "npm run fetch-samples:react && node scripts/build-samples.js",
-    "dev": "npm run build && node scripts/serve.js",
-    "serve": "npm run build && node scripts/serve.js",
+    "clean": "rm -rf dist src/samples/*.tsx src/samples/*.ts src/samples/*.json",
+    "fetch-samples": "npm run clean && node scripts/fetch-samples.js && node scripts/fix-samples.js",
+    "fetch-samples:react": "npm run clean && node scripts/fetch-samples.js --react && node scripts/fix-samples.js",
+    "build": "node scripts/build-samples.js",
     "deploy": "npm run build && node scripts/deploy-to-auth0.js",
-    "deploy:screen": "node scripts/deploy-to-auth0.js",
-    "clean": "rm -rf dist src/samples/*.tsx src/samples/*.ts src/samples/*.json"
+    "serve": "npm run deploy && node scripts/serve.js",
+    "serve:stop": "node scripts/stop-server.js"
   },
   "keywords": [
     "auth0",

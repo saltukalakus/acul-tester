@@ -4,12 +4,16 @@ import express from 'express';
 import { join, dirname } from 'path';
 import { fileURLToPath } from 'url';
 import { existsSync } from 'fs';
+import dotenv from 'dotenv';
+
+// Load environment variables
+dotenv.config();
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
 const app = express();
-const PORT = 5500;
+const PORT = parseInt(process.env.PORT || '5500', 10);
 const DIST_DIR = join(__dirname, '..', 'dist');
 
 if (!existsSync(DIST_DIR)) {

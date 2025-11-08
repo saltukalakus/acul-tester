@@ -3,13 +3,17 @@
 import { writeFileSync, mkdirSync, existsSync, readFileSync } from 'fs';
 import { join, dirname } from 'path';
 import { fileURLToPath } from 'url';
+import { execSync } from 'child_process';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
-// Command line argument to select example source
+// Command line arguments
 const args = process.argv.slice(2);
 const useReactExamples = args.includes('--react') || args.includes('-r');
+
+// Extract pattern arguments (anything that's not a flag)
+const patterns = args.filter(arg => !arg.startsWith('-'));
 
 /**
  * Get installed package version from package.json
@@ -44,12 +48,26 @@ async function getExampleFiles() {
   }
   
   const files = await response.json();
-  const mdFiles = files
+  let mdFiles = files
     .filter(file => file.name.endsWith('.md') && file.type === 'file')
     .map(file => file.name)
     .sort();
   
-  console.log(`✓ Found ${mdFiles.length} example files\n`);
+  // Filter by patterns if provided
+  if (patterns.length > 0) {
+    const originalCount = mdFiles.length;
+    mdFiles = mdFiles.filter(filename => 
+      patterns.some(pattern => filename.toLowerCase().includes(pattern.toLowerCase()))
+    );
+    console.log(`✓ Found ${mdFiles.length} example files matching patterns: ${patterns.join(', ')} (${originalCount} total)\n`);
+  } else {
+    console.log(`✓ Found ${mdFiles.length} example files\n`);
+  }
+  
+  if (mdFiles.length === 0) {
+    throw new Error(`No files found matching patterns: ${patterns.join(', ')}`);
+  }
+  
   return mdFiles;
 }
 
@@ -161,13 +179,12 @@ async function fetchExample(filename) {
 }
 
 /**
- * Process all example files
+ * Process example files
  */
 async function processExamples() {
-  // Create output directory if it doesn't exist
-  if (!existsSync(OUTPUT_DIR)) {
-    mkdirSync(OUTPUT_DIR, { recursive: true });
-  }
+  
+  // Ensure output directory exists
+  mkdirSync(OUTPUT_DIR, { recursive: true });
   
   // Get list of example files dynamically
   const EXAMPLE_FILES = await getExampleFiles();
@@ -227,15 +244,26 @@ async function processExamples() {
 
 // Run the script
 const sourceLabel = useReactExamples ? 'React' : 'JavaScript';
-console.log(`📦 Fetching Auth0 ACUL ${sourceLabel} samples from git tag ${GIT_TAG}...\n`);
+const patternInfo = patterns.length > 0 ? ` (filtering by: ${patterns.join(', ')})` : '';
+console.log(`📦 Fetching Auth0 ACUL ${sourceLabel} samples from git tag ${GIT_TAG}${patternInfo}...\n`);
 
 if (args.includes('--help') || args.includes('-h')) {
-  console.log('Usage: node fetch-samples.js [options]\n');
+  console.log('Usage: node fetch-samples.js [pattern...] [options]\n');
+  console.log('Arguments:');
+  console.log('  pattern        Filter samples by name pattern (e.g., "login" fetches all *login*.md files)');
+  console.log('                 Multiple patterns can be specified: "login mfa signup"\n');
   console.log('Options:');
   console.log('  --react, -r    Fetch React examples from @auth0/auth0-acul-react');
-  console.log('  --help, -h     Show this help message');
-  console.log('\nDefault: Fetches JavaScript examples from @auth0/auth0-acul-js');
-  console.log('\nNote: Fetches from git tag matching the installed package version');
+  console.log('  --help, -h     Show this help message\n');
+  console.log('Examples:');
+  console.log('  node fetch-samples.js                  # Fetch all JavaScript samples');
+  console.log('  node fetch-samples.js login             # Fetch all samples with "login" in filename');
+  console.log('  node fetch-samples.js login mfa         # Fetch samples matching "login" OR "mfa"');
+  console.log('  node fetch-samples.js --react           # Fetch all React samples');
+  console.log('  node fetch-samples.js login --react     # Fetch React samples with "login" in filename\n');
+  console.log('Behavior:');
+  console.log('  - Fetches from git tag matching the installed package version');
+  console.log('  - Run this separately before "npm run build"');
   process.exit(0);
 }
 

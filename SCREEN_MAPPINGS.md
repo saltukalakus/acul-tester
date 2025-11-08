@@ -175,7 +175,7 @@ These screens cannot be built due to SDK or dependency limitations:
 - `brute-force-protection-unblock-success`  
 - `brute-force-protection-unblock-failure`
 
-**Reason**: The `@auth0/auth0-acul-js` package exports these in package.json but the actual implementation files don't exist in `dist/screens/`. These screens are not yet implemented in the SDK (as of v0.1.0-beta.9).
+**Reason**: The `@auth0/auth0-acul-js` package exports these in package.json but the actual implementation files don't exist in `dist/screens/`. These screens are not yet implemented in the SDK (as of v1.0.0-alpha.2).
 
 #### Signup (3 screens)
 - `signup`
@@ -196,11 +196,13 @@ These components don't exist in the standalone samples and cannot be bundled.
 
 The following screens had issues that were automatically fixed by `scripts/fix-samples.js`:
 
-- ✅ `login` - Removed invalid `getActiveIdentifiers()` SDK call
 - ✅ `interstitial-captcha` - Fixed typo in import path (`intersitial` → `interstitial`)
+- ✅ `mfa-push-welcome` - Fixed typo in import statement (`iimport` → `import`)
 - ✅ `get-current-screen-options` - Converted to informational placeholder (utility function, not a screen)
 - ✅ `get-current-theme-options` - Converted to informational placeholder (utility function, not a screen)
 
+**Note**: The `login` screen uses `getActiveIdentifiers()` which is the correct API in alpha.2 and will be properly exported in future releases.
+
 ### Deployment Notes
 
-The 6 screens with build issues can still be "deployed" to Auth0, but they will only load placeholder JavaScript that displays a warning in the console. The other **75 screens work perfectly** and can be deployed and tested.
+The 3 screens with build issues (brute-force protection) can still be "deployed" to Auth0, but they will only load placeholder JavaScript that displays a warning in the console. The other **78 JavaScript screens and 76 React screens work perfectly** and can be deployed and tested.

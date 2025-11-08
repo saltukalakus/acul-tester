@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-import { readFileSync, existsSync } from 'fs';
+import { readFileSync, existsSync, readdirSync } from 'fs';
 import { join, dirname } from 'path';
 import { fileURLToPath } from 'url';
 import 'dotenv/config';
@@ -7,6 +7,7 @@ import 'dotenv/config';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 const DIST_DIR = join(__dirname, '..', 'dist');
+const SAMPLES_DIR = join(__dirname, '..', 'src', 'samples');
 
 // Read current version
 const versionFile = join(DIST_DIR, '.current-version');
@@ -21,7 +22,8 @@ const OUTPUT_DIR = join(DIST_DIR, CURRENT_VERSION);
 const AUTH0_DOMAIN = process.env.AUTH0_DOMAIN;
 const CLIENT_ID = process.env.AUTH0_CLIENT_ID;
 const CLIENT_SECRET = process.env.AUTH0_CLIENT_SECRET;
-const BASE_URL = process.env.BASE_URL || 'http://localhost:5500';
+const PORT = process.env.PORT || '5500';
+const BASE_URL = process.env.BASE_URL || `http://localhost:${PORT}`;
 const CSS_URL = `${BASE_URL}/${CURRENT_VERSION}/styles.css`;
 
 // Validate environment variables
@@ -279,6 +281,23 @@ function getPromptAndScreen(screenFileName) {
 }
 
 /**
+ * Get list of available screens from src/samples directory
+ */
+function getAvailableScreens() {
+  if (!existsSync(SAMPLES_DIR)) {
+    throw new Error('No samples directory found. Run "npm run fetch-samples" first.');
+  }
+  
+  const files = readdirSync(SAMPLES_DIR);
+  const screens = files
+    .filter(file => file.endsWith('.tsx'))
+    .filter(file => !file.includes('.wrapper.')) // Exclude wrapper files
+    .map(file => file.replace('.tsx', ''));
+  
+  return screens;
+}
+
+/**
  * Deploy all screens to Auth0
  */
 async function deployAll() {
@@ -290,13 +309,10 @@ async function deployAll() {
     // Get access token
     const token = await getManagementToken();
 
-    // Get list of screens to deploy
-    const manifest = JSON.parse(
-      readFileSync(join(__dirname, '..', 'src', 'samples', 'manifest.json'), 'utf-8')
-    );
-    const screens = Object.keys(manifest);
+    // Get list of screens from src/samples directory
+    const screens = getAvailableScreens();
 
-    console.log(`📦 Found ${screens.length} screens to deploy\n`);
+    console.log(`📦 Found ${screens.length} screens in src/samples/\n`);
 
     let successCount = 0;
     let failCount = 0;
@@ -304,10 +320,18 @@ async function deployAll() {
     // Deploy each screen
     for (const screenFileName of screens) {
       try {
-        const componentPath = join(OUTPUT_DIR, screenFileName, 'component.js');
+        // Check if source file exists in src/samples
+        const sourcePath = join(SAMPLES_DIR, `${screenFileName}.tsx`);
+        if (!existsSync(sourcePath)) {
+          console.log(`  ⚠️  Skipping ${screenFileName} - source file not found in src/samples`);
+          failCount++;
+          continue;
+        }
         
+        // Check if built component exists
+        const componentPath = join(OUTPUT_DIR, screenFileName, 'component.js');
         if (!existsSync(componentPath)) {
-          console.log(`  ⚠️  Skipping ${screenFileName} - component file not found`);
+          console.log(`  ⚠️  Skipping ${screenFileName} - component not built (run "npm run build")`);
           failCount++;
           continue;
         }
@@ -367,10 +391,19 @@ async function deployScreens(screenNames) {
 
     for (const screenFileName of screenNames) {
       try {
-        const componentPath = join(OUTPUT_DIR, screenFileName, 'component.js');
+        // Check if source file exists in src/samples
+        const sourcePath = join(SAMPLES_DIR, `${screenFileName}.tsx`);
+        if (!existsSync(sourcePath)) {
+          console.error(`❌ Screen '${screenFileName}' not found in src/samples/`);
+          console.error(`   Available screens: ${getAvailableScreens().join(', ')}`);
+          failCount++;
+          continue;
+        }
         
+        // Check if built component exists
+        const componentPath = join(OUTPUT_DIR, screenFileName, 'component.js');
         if (!existsSync(componentPath)) {
-          console.error(`❌ Screen '${screenFileName}' not found in dist/`);
+          console.error(`❌ Screen '${screenFileName}' not built. Run "npm run build" first.`);
           failCount++;
           continue;
         }
