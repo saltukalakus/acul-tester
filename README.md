@@ -119,9 +119,9 @@ Uses Auth0 Management API to configure each Universal Login screen with:
 - Keep server running while testing Auth0 login flows
 - CSS is shared across all screens
 
-## Warning
+## 🚨 **Warning**
 
-**For local testing only - not for production use. Do NOT use this tool with your production tenant.**
+**For local testing only - not for production use. Do NOT use this tool with your production Auth0 tenant.**
 
 ## License
 
