@@ -5,7 +5,7 @@ Local development tool for testing Auth0 Universal Login (ACUL) samples. Fetches
 ## What It Does
 
 1. **Fetches** - Downloads sample screens from Auth0's official repository (JavaScript or React)
-2. **Builds** - Compiles samples into production-ready CSS and JavaScript modules  
+2. **Builds** - Compiles samples into testable CSS and JavaScript modules  
 3. **Serves** - Hosts assets locally with CORS enabled for Auth0 integration
 4. **Deploys** - Automatically configures your Auth0 tenant to use these local assets
 
@@ -118,7 +118,10 @@ Uses Auth0 Management API to configure each Universal Login screen with:
 - If you update the files in `src/samples/` restart the server for the chanages to take affect
 - Keep server running while testing Auth0 login flows
 - CSS is shared across all screens
-- For local testing only - not for production use
+
+## Warning
+
+**For local testing only - not for production use. Do NOT use this tool with your production tenant.**
 
 ## License
 
