@@ -25,23 +25,26 @@ cp .env.example .env
 npm run fetch       # Fetch all JavaScript samples
 npm run fetch:react  # Fetch all React samples
 
-# Stop aby running server, build, deploy to Auth0 tenant and serve again
+# Stop any running server, build, deploy to Auth0 tenant and serve again
 npm run start
 
-# Stop the server and cleanup Auth0 tenant ACUL settings
+# Stop the server
 npm run stop
+
+# Reset Auth0 screens and remove local files
+npm run clean
 
 Server runs on `http://localhost:PORT` (default: 5500, configurable in `.env`)
 
 ## Available Commands
 
-| Command               | Description                                               |
-|-----------------------|-----------------------------------------------------------|
-| `npm run fetch`       | Fetch all JavaScript samples (cleans previous)            |
-| `npm run fetch:react` | Fetch all React samples (cleans previous)                 |
-| `npm run serve`       | Build, deploy and restart the server (default port: 5500) |
-| `npm run stop`        | Stop the running server and cleanup ACUL settings         |
-| `npm run clean`       | Remove built files and fetched samples                    |
+| Command               | Description                                           |
+|-----------------------|-------------------------------------------------------|
+| `npm run fetch`       | Fetch all JavaScript samples                          |
+| `npm run fetch:react` | Fetch all React samples                               |
+| `npm run start`       | Stop server, build, deploy to Auth0, and serve        |
+| `npm run stop`        | Stop the running server                               |
+| `npm run clean`       | Reset Auth0 screens to defaults + remove local files  |
 
 ### Filtering Samples
 
@@ -101,9 +104,10 @@ Downloads markdown files from Auth0's GitHub repository at the version matching 
 Static Express server with CORS enabled, serving assets from `dist/` on configured PORT.
 
 ### Deploy
-Uses Auth0 Management API to configure each Universal Login screen with:
-- CSS: `<link rel="stylesheet" href="http://localhost:{PORT}/v-{hash}/styles.css">`
+Uses Auth0 Management API **bulk endpoint** (`PATCH /api/v2/prompts/rendering`) to configure all Universal Login screens with a single API call:
 - JS: `<script type="module" src="http://localhost:{PORT}/v-{hash}/{screen}/component.js"></script>`
+
+**Performance:** Deploys all screens in ~1 second (vs. ~78 seconds with individual API calls).
 
 ## Resources
 

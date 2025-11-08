@@ -185,27 +185,153 @@ export function getPromptAndScreen(screenFileName) {
     'signup-password': { prompt: 'signup-password', screen: 'signup-password' },
     
     // Brute Force Protection
-    'brute-force-protection-unblock': { prompt: 'login', screen: 'brute-force-protection-unblock' },
-    'brute-force-protection-unblock-success': { prompt: 'login', screen: 'brute-force-protection-unblock-success' },
-    'brute-force-protection-unblock-failure': { prompt: 'login', screen: 'brute-force-protection-unblock-failure' },
+    'brute-force-protection-unblock': { prompt: 'brute-force-protection', screen: 'brute-force-protection-unblock' },
+    'brute-force-protection-unblock-success': { prompt: 'brute-force-protection', screen: 'brute-force-protection-unblock-success' },
+    'brute-force-protection-unblock-failure': { prompt: 'brute-force-protection', screen: 'brute-force-protection-unblock-failure' },
   };
   
   return PROMPT_SCREEN_MAP[screenFileName] || { prompt: screenFileName, screen: screenFileName };
 }
 
 /**
- * Get list of available screens from src/samples directory
+ * Get list of screens from src/samples directory
+ * Filters out non-deployable helper functions
  */
 export function getAvailableScreens() {
   if (!existsSync(SAMPLES_DIR)) {
     return [];
   }
   
+  // These are helper functions or screens with missing dependencies, not deployable
+  const PLACEHOLDER_SCREENS = [
+    'get-current-screen-options',
+    'get-current-theme-options',
+    'brute-force-protection-unblock',
+    'brute-force-protection-unblock-success',
+    'brute-force-protection-unblock-failure'
+  ];
+  
   const files = readdirSync(SAMPLES_DIR);
   const screens = files
     .filter(file => file.endsWith('.tsx'))
     .filter(file => !file.includes('.wrapper.'))
-    .map(file => file.replace('.tsx', ''));
+    .map(file => file.replace('.tsx', ''))
+    .filter(screen => !PLACEHOLDER_SCREENS.includes(screen));
   
   return screens;
+}
+
+/**
+ * Bulk update Auth0 prompt rendering settings (deploy screens in batches)
+ * Auth0 API limit: maximum 50 screens per request
+ */
+export async function bulkUpdateRendering(AUTH0_DOMAIN, token, baseUrl, version, screenFileNames) {
+  const BATCH_SIZE = 50;
+  const totalScreens = screenFileNames.length;
+  const batches = Math.ceil(totalScreens / BATCH_SIZE);
+  
+  console.log(`📦 Bulk deploying ${totalScreens} screens in ${batches} batch(es)...\n`);
+  
+  for (let i = 0; i < totalScreens; i += BATCH_SIZE) {
+    const batch = screenFileNames.slice(i, i + BATCH_SIZE);
+    const batchNum = Math.floor(i / BATCH_SIZE) + 1;
+    
+    console.log(`  Batch ${batchNum}/${batches}: Deploying ${batch.length} screens...`);
+    
+    const configs = batch.map(screenFileName => {
+      const { prompt, screen } = getPromptAndScreen(screenFileName);
+      return {
+        prompt,
+        screen,
+        rendering_mode: 'advanced',
+        head_tags: [
+          {
+            tag: 'link',
+            attributes: {
+              rel: 'stylesheet',
+              href: `${baseUrl}/${version}/styles.css`
+            }
+          },
+          {
+            tag: 'script',
+            attributes: {
+              src: `${baseUrl}/${version}/${screenFileName}/component.js`,
+              type: 'module'
+            }
+          }
+        ]
+      };
+    });
+
+    const response = await fetch(
+      `https://${AUTH0_DOMAIN}/api/v2/prompts/rendering`,
+      {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({ configs })
+      }
+    );
+
+    if (!response.ok) {
+      const error = await response.text();
+      throw new Error(`Bulk update failed (batch ${batchNum}): ${response.status} ${error}`);
+    }
+
+    console.log(`  ✓ Batch ${batchNum}/${batches} complete`);
+  }
+  
+  console.log(`\n✓ Successfully deployed all ${totalScreens} screens\n`);
+}
+
+/**
+ * Bulk reset Auth0 prompt rendering settings to standard mode (cleanup screens in batches)
+ * Auth0 API limit: maximum 50 screens per request
+ */
+export async function bulkResetRendering(AUTH0_DOMAIN, token, screenFileNames) {
+  const BATCH_SIZE = 50;
+  const totalScreens = screenFileNames.length;
+  const batches = Math.ceil(totalScreens / BATCH_SIZE);
+  
+  console.log(`🧹 Bulk resetting ${totalScreens} screens to defaults in ${batches} batch(es)...\n`);
+  
+  for (let i = 0; i < totalScreens; i += BATCH_SIZE) {
+    const batch = screenFileNames.slice(i, i + BATCH_SIZE);
+    const batchNum = Math.floor(i / BATCH_SIZE) + 1;
+    
+    console.log(`  Batch ${batchNum}/${batches}: Resetting ${batch.length} screens...`);
+    
+    const configs = batch.map(screenFileName => {
+      const { prompt, screen } = getPromptAndScreen(screenFileName);
+      return {
+        prompt,
+        screen,
+        rendering_mode: 'standard',
+        head_tags: []
+      };
+    });
+
+    const response = await fetch(
+      `https://${AUTH0_DOMAIN}/api/v2/prompts/rendering`,
+      {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({ configs })
+      }
+    );
+
+    if (!response.ok) {
+      const error = await response.text();
+      throw new Error(`Bulk reset failed (batch ${batchNum}): ${response.status} ${error}`);
+    }
+
+    console.log(`  ✓ Batch ${batchNum}/${batches} complete`);
+  }
+  
+  console.log(`\n✓ Successfully reset all ${totalScreens} screens to defaults\n`);
 }

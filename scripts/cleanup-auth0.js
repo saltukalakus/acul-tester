@@ -3,8 +3,8 @@ import 'dotenv/config';
 import { 
   validateAuth0Config, 
   getManagementToken, 
-  getPromptAndScreen, 
-  getAvailableScreens 
+  getAvailableScreens,
+  bulkResetRendering
 } from './auth0-utils.js';
 
 // Auth0 Configuration
@@ -14,43 +14,6 @@ const CLIENT_SECRET = process.env.AUTH0_CLIENT_SECRET;
 
 // Validate environment variables
 validateAuth0Config(AUTH0_DOMAIN, CLIENT_ID, CLIENT_SECRET);
-
-/**
- * Reset a specific prompt rendering to default (standard mode)
- */
-async function resetPromptRendering(token, prompt, screen) {
-  console.log(`🔄 Resetting ${prompt}/${screen} to default...`);
-  
-  const body = {
-    rendering_mode: 'standard',
-    head_tags: []
-  };
-
-  const response = await fetch(
-    `https://${AUTH0_DOMAIN}/api/v2/prompts/${prompt}/screen/${screen}/rendering`,
-    {
-      method: 'PATCH',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${token}`
-      },
-      body: JSON.stringify(body)
-    }
-  );
-
-  if (!response.ok) {
-    const error = await response.text();
-    throw new Error(`Failed to reset ${prompt}/${screen}: ${response.status} ${error}`);
-  }
-
-  const result = await response.json();
-  console.log(`  ✓ Reset to default`);
-  
-  // Add delay to avoid rate limiting
-  await new Promise(resolve => setTimeout(resolve, 1000));
-  
-  return result;
-}
 
 /**
  * Main cleanup function
@@ -68,39 +31,21 @@ async function cleanup() {
       return;
     }
 
-    console.log(`📦 Found ${screens.length} screens to reset to defaults\n`);
+    // Use bulk API to reset all screens with a single call
+    await bulkResetRendering(AUTH0_DOMAIN, token, screens);
 
-    let successCount = 0;
-    let failCount = 0;
-
-    for (const screenFileName of screens) {
-      try {
-        const { prompt, screen } = getPromptAndScreen(screenFileName);
-        await resetPromptRendering(token, prompt, screen);
-        successCount++;
-      } catch (error) {
-        console.error(`  ❌ Failed to reset ${screenFileName}:`, error.message);
-        failCount++;
-      }
-    }
-
-    console.log('\n' + '='.repeat(50));
-    console.log('📊 Cleanup Summary:');
-    console.log(`  ✓ Reset: ${successCount}`);
-    console.log(`  ❌ Failed: ${failCount}`);
-    console.log(`  📝 Total: ${screens.length}`);
     console.log('='.repeat(50));
-
-    if (failCount === 0) {
-      console.log('\n✅ All screens reset to Auth0 defaults!');
-    } else {
-      console.log('\n⚠️  Some screens failed to reset. Check the errors above.');
-      process.exit(1);
-    }
+    console.log('📊 Cleanup Summary:');
+    console.log(`  ✓ Reset: ${screens.length} screens`);
+    console.log('='.repeat(50));
+    console.log('\n✅ All screens reset to Auth0 defaults!');
 
   } catch (error) {
     console.error('\n❌ Cleanup failed:', error.message);
-    process.exit(1);
+    // Don't exit with error if no screens to cleanup
+    if (!error.message.includes('No screens')) {
+      process.exit(1);
+    }
   }
 }
 

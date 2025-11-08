@@ -42,7 +42,6 @@ app.use(express.static(DIST_DIR));
 app.listen(PORT, async () => {
   console.log('\n🚀 Auth0 ACUL Sample Server Running!\n');
   console.log(`📍 Server: http://localhost:${PORT}`);
-  console.log(`📄 Index: http://localhost:${PORT}/index.html`);
   console.log('\n📦 Available Samples:');
   
   // Read manifest to show available samples

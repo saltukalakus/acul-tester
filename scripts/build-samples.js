@@ -149,21 +149,6 @@ export default function Placeholder() {
   }
 }
 
-const css = readFileSync(join(OUTPUT_DIR, 'styles.css'), 'utf-8');
-const index = `<!DOCTYPE html>
-<html><head><meta charset="UTF-8"><title>Auth0 ACUL v-${VERSION_HASH}</title><link rel="stylesheet" href="/v-${VERSION_HASH}/styles.css"></head>
-<body class="bg-gray-50 p-8"><div class="max-w-4xl mx-auto">
-<h1 class="text-3xl font-bold mb-6">Auth0 ACUL Samples</h1>
-<div class="bg-blue-50 p-4 rounded mb-6">
-<p class="font-semibold">Version: <code>v-${VERSION_HASH}</code></p>
-<p class="font-semibold">CSS: <code>http://localhost:${PORT}/v-${VERSION_HASH}/styles.css</code> (${Math.round(css.length/1024)} KB)</p>
-</div>
-<div class="grid grid-cols-3 gap-4">
-${samples.map(s => `<a href="/v-${VERSION_HASH}/${s}/component.tsx" class="p-4 bg-white rounded shadow">${s}</a>`).join('')}
-</div></div></body></html>`;
-
-writeFileSync(join(OUTPUT_DIR, 'index.html'), index, 'utf-8');
-
 // Save version info  
 const versions = existsSync(versionsFile) ? readFileSync(versionsFile, 'utf-8').split('\n').filter(Boolean) : [];
 versions.push(`v-${VERSION_HASH}`);

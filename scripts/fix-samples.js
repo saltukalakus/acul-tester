@@ -9,6 +9,55 @@ const SAMPLES_DIR = join(__dirname, '..', 'src', 'samples');
 
 console.log('🔧 Fixing sample code issues...\n');
 
+// Fix getActiveIdentifiers -> getLoginIdentifiers (API change in alpha.2)
+const allFiles = readdirSync(SAMPLES_DIR).filter(f => f.endsWith('.tsx'));
+let fixedIdentifiers = 0;
+
+for (const file of allFiles) {
+  const filePath = join(SAMPLES_DIR, file);
+  try {
+    let content = readFileSync(filePath, 'utf-8');
+    let modified = false;
+    
+    // Fix getActiveIdentifiers -> getLoginIdentifiers
+    if (content.includes('getActiveIdentifiers')) {
+      content = content.replace(/getActiveIdentifiers/g, 'getLoginIdentifiers');
+      modified = true;
+    }
+    
+    // Add fallback for getLoginIdentifiers if it doesn't exist in SDK
+    // This handles alpha.2 SDK versions that might not have this method
+    if (content.includes('loginManager.getLoginIdentifiers()') && !content.includes('getLoginIdentifiers ?? ')) {
+      content = content.replace(
+        /loginManager\.getLoginIdentifiers\(\)/g,
+        "(loginManager.getLoginIdentifiers?.() ?? loginManager.getActiveIdentifiers?.() ?? ['email'])"
+      );
+      modified = true;
+    }
+    
+    // Add fallback for getEnabledIdentifiers in signup screens
+    // Include all common identifiers so the form shows all fields
+    if (content.includes('signupManager.getEnabledIdentifiers()') && !content.includes('getEnabledIdentifiers ?? ')) {
+      content = content.replace(
+        /signupManager\.getEnabledIdentifiers\(\)/g,
+        "(signupManager.getEnabledIdentifiers?.() ?? [{ type: 'email', required: true }, { type: 'username', required: false }, { type: 'phone', required: false }])"
+      );
+      modified = true;
+    }
+    
+    if (modified) {
+      writeFileSync(filePath, content, 'utf-8');
+      fixedIdentifiers++;
+    }
+  } catch (err) {
+    // Skip files that can't be read
+  }
+}
+
+if (fixedIdentifiers > 0) {
+  console.log(`  ✓ Fixed login identifier methods in ${fixedIdentifiers} file(s)`);
+}
+
 // Fix interstitial-captcha.tsx - typo in import path
 const captchaPath = join(SAMPLES_DIR, 'interstitial-captcha.tsx');
 try {
