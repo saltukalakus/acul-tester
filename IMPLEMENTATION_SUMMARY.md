@@ -107,7 +107,12 @@ const GITHUB_API_BASE = `https://api.github.com/repos/auth0/universal-login/cont
 # Fetch all samples
 npm run fetch
 
-# Fetch specific patterns
+# Fetch specific patterns using npm scripts
+npm run fetch login              # JavaScript samples matching "login"
+npm run fetch:react signup       # React samples matching "signup"
+npm run fetch login mfa          # Samples matching "login" OR "mfa"
+
+# Direct script usage (alternative)
 node scripts/fetch-samples.js login        # All *login* samples
 node scripts/fetch-samples.js login mfa    # login OR mfa samples
 node scripts/fetch-samples.js --react signup  # React signup samples
@@ -120,6 +125,8 @@ mdFiles = mdFiles.filter(filename =>
   patterns.some(pattern => filename.toLowerCase().includes(pattern.toLowerCase()))
 );
 ```
+
+**Note:** `fetch-samples.js` now automatically runs `fix-samples.js` after fetching.
 
 ### Clean Fetch Behavior
 
@@ -566,14 +573,17 @@ PORT=5500  # Default: 5500
 ```json
 {
   "clean": "rm -rf dist src/samples/*.tsx src/samples/*.ts src/samples/*.json",
-  "fetch-samples": "npm run clean && node scripts/fetch-samples.js && node scripts/fix-samples.js",
-  "fetch-samples:react": "npm run clean && node scripts/fetch-samples.js --react && node scripts/fix-samples.js",
-  "build": "node scripts/build-samples.js",
-  "deploy": "npm run build && node scripts/deploy-to-auth0.js",
-  "serve": "npm run deploy && node scripts/serve.js",
-  "serve:stop": "node scripts/stop-server.js",
-  "dev": "npm run fetch-samples && npm run build && node scripts/serve.js"
+  "fetch": "npm run clean && node scripts/fetch-samples.js --",
+  "fetch:react": "npm run clean && node scripts/fetch-samples.js --react --",
+  "serve": "node scripts/build-samples.js && node scripts/deploy-to-auth0.js && node scripts/serve.js",
+  "stop": "node scripts/stop-server.js"
 }
+```
+
+**Note:** The `--` separator allows passing filter arguments:
+```bash
+npm run fetch login              # Fetch JavaScript samples matching "login"
+npm run fetch:react signup mfa   # Fetch React samples matching "signup" OR "mfa"
 ```
 
 ## Workflows
@@ -582,50 +592,41 @@ PORT=5500  # Default: 5500
 
 ```bash
 # 1. Fetch samples
-npm run fetch-samples        # or fetch-samples:react
+npm run fetch           # JavaScript samples
+npm run fetch:react     # React samples
 
-# 2. Build
-npm run build
-
-# 3. Serve locally
+# 2. Build, deploy, and serve (all-in-one)
 npm run serve
 
-# 4. Deploy to Auth0
-npm run deploy
-
-# 5. Test login flow
+# 3. Test login flow
 # Visit your application and trigger login
 
-# 6. Stop server when done
-npm run serve:stop
+# 4. Stop server when done
+npm run stop
 ```
 
 ### Rapid Iteration Workflow
 
 ```bash
 # Fetch once
-npm run fetch-samples
+npm run fetch
 
-# Build multiple times (e.g., CSS changes)
-npm run build
-npm run build
-npm run build
-
-# No need to re-fetch
+# Build and serve (no re-fetch needed)
+npm run serve
+npm run serve
+npm run serve
 ```
 
 ### Pattern-Based Workflow
 
 ```bash
 # Work on login screens only
-node scripts/fetch-samples.js login
-npm run build
-npm run deploy:screen login login-id login-password
+npm run fetch login
+npm run serve
 
 # Work on MFA screens
-node scripts/fetch-samples.js mfa
-npm run build
-npm run deploy:screen mfa-login-options mfa-otp-challenge
+npm run fetch:react mfa
+npm run serve
 ```
 
 ## Security Considerations
@@ -656,14 +657,15 @@ jobs:
       - uses: actions/checkout@v2
       - uses: actions/setup-node@v2
       - run: npm install
-      - run: npm run fetch-samples
-      - run: npm run build
-      - run: npm run deploy
+      - run: npm run fetch
+      - run: npm run serve
         env:
           AUTH0_DOMAIN: ${{ secrets.AUTH0_DOMAIN }}
           AUTH0_CLIENT_ID: ${{ secrets.AUTH0_CLIENT_ID }}
           AUTH0_CLIENT_SECRET: ${{ secrets.AUTH0_CLIENT_SECRET }}
 ```
+
+**Note:** `npm run serve` handles build, deploy, and server start in one command.
 
 ## Performance
 
@@ -700,34 +702,21 @@ jobs:
 **Solution:** Ensure M2M app has `read:prompts` and `update:prompts` permissions
 
 **Issue:** 404 Not Found  
-**Solution:** Screen/prompt combination doesn't exist in Auth0 (check SCREEN_MAPPINGS.md)
+**Solution:** Screen/prompt combination doesn't exist in Auth0 (check screen mappings in this document)
 
 ### Server Issues
 
 **Issue:** Port already in use  
-**Solution:** Run `npm run serve:stop` or change PORT in `.env`
+**Solution:** Run `npm run stop` or change PORT in `.env`
 
 **Issue:** CORS errors  
 **Solution:** Ensure server is running and Auth0 can reach localhost (use ngrok for cloud tenants)
-
-## Future Enhancements
-
-Potential improvements:
-
-- [ ] Watch mode for automatic rebuild
-- [ ] CDN deployment support
-- [ ] Production build with minification
-- [ ] Multiple tenant support
-- [ ] Deployment rollback capability
-- [ ] Build caching for faster rebuilds
-- [ ] Custom component library support
 
 ## References
 
 - [Auth0 Universal Login Docs](https://auth0.com/docs/customize/login-pages)
 - [ACUL SDK Repository](https://github.com/auth0/universal-login)
 - [Management API - Prompt Rendering](https://auth0.com/docs/api/management/v2/prompts)
-- [Screen Mappings](./SCREEN_MAPPINGS.md)
 
 ---
 
