@@ -26,6 +26,7 @@ Automated system for fetching, building, serving, and deploying Auth0 Universal 
    - Named/default export detection
    - Versioned output with cache busting
    - Source map generation
+   - Reads actual files from directory (allows manual deletion of unwanted samples)
 
 4. **Serve System** (`scripts/serve.js`)
    - Express static server
@@ -39,7 +40,26 @@ Automated system for fetching, building, serving, and deploying Auth0 Universal 
    - Bulk and selective deployment
    - Only deploys screens that exist in `src/samples/`
 
-6. **Mock Components** (`components/`, `src/samples/components/`)
+6. **Cleanup System** (`scripts/cleanup-auth0.js`)
+   - Resets Auth0 screens to default (standard mode)
+   - Reads from `src/samples/` to determine which screens to reset
+   - Removes custom CSS and JS from Auth0 configuration
+   - Automatically called by `npm run stop`
+
+7. **Auth0 Utilities** (`scripts/auth0-utils.js`)
+   - Shared utilities for Auth0 Management API
+   - Environment validation
+   - OAuth token management
+   - Screen-to-prompt mapping (81 screens)
+   - Directory scanning for available screens
+   - Used by both deploy and cleanup systems
+
+8. **Stop System** (`scripts/stop-server.js`)
+   - Stops local server on configured PORT
+   - Calls cleanup-auth0.js to reset Auth0 tenant
+   - Complete teardown of local testing environment
+
+9. **Mock Components** (`components/`, `src/samples/components/`)
    - Provides missing SDK components
    - Enables builds without modifying fetched samples
    - Git-tracked for consistency
@@ -54,7 +74,9 @@ acul-tester/
 │   ├── build-samples.js      # esbuild compilation
 │   ├── serve.js              # Express server
 │   ├── deploy-to-auth0.js    # Management API deployment
-│   └── stop-server.js        # Server shutdown
+│   ├── cleanup-auth0.js      # Reset Auth0 to defaults
+│   ├── auth0-utils.js        # Shared Auth0 utilities
+│   └── stop-server.js        # Server shutdown + cleanup
 ├── components/               # Root mock components (git-tracked)
 │   ├── Logo.tsx
 │   └── Button.tsx
@@ -477,10 +499,10 @@ npm run deploy:screen mfa-otp-enrollment-code
 
 ### Rate Limiting
 
-500ms delay between API calls to avoid rate limits:
+1-second delay between API calls to avoid rate limits:
 
 ```javascript
-await new Promise(resolve => setTimeout(resolve, 500));
+await new Promise(resolve => setTimeout(resolve, 1000));
 ```
 
 ### Error Handling
@@ -491,6 +513,119 @@ await new Promise(resolve => setTimeout(resolve, 500));
 - File existence checks
 - Network error recovery
 - Comprehensive error reporting
+
+## Auth0 Utilities (`auth0-utils.js`)
+
+Shared utilities module for Auth0 Management API operations. Extracted from `deploy-to-auth0.js` and `cleanup-auth0.js` to eliminate code duplication and provide a single source of truth.
+
+### Code Deduplication
+
+**Before refactoring:**
+- `deploy-to-auth0.js`: 426 lines
+- `cleanup-auth0.js`: 302 lines
+- Total: 728 lines with ~230 lines duplicated
+
+**After refactoring:**
+- `deploy-to-auth0.js`: 192 lines (-55%)
+- `cleanup-auth0.js`: 108 lines (-64%)
+- `auth0-utils.js`: 211 lines (new)
+- Total: 511 lines (-30% overall)
+
+### Exported Functions
+
+#### 1. `validateAuth0Config(domain, clientId, clientSecret)`
+
+Validates required Auth0 environment variables:
+
+```javascript
+if (!domain || !clientId || !clientSecret) {
+  console.error('❌ Missing required environment variables!');
+  console.error('Required: AUTH0_DOMAIN, AUTH0_CLIENT_ID, AUTH0_CLIENT_SECRET');
+  process.exit(1);
+}
+```
+
+#### 2. `getManagementToken(domain, clientId, clientSecret)`
+
+Obtains OAuth 2.0 access token for Management API:
+
+```javascript
+const token = await getManagementToken(
+  AUTH0_DOMAIN, 
+  CLIENT_ID, 
+  CLIENT_SECRET
+);
+```
+
+**Returns:** Management API access token (Bearer token)
+
+#### 3. `getPromptAndScreen(screenFileName)`
+
+Maps screen file names to Auth0 prompt/screen API endpoints:
+
+```javascript
+const { prompt, screen } = getPromptAndScreen('mfa-otp-challenge');
+// Returns: { prompt: 'mfa-otp', screen: 'mfa-otp-challenge' }
+```
+
+**Maintains complete mapping of all 81 Auth0 screens:**
+- Captcha (1 screen)
+- Common (1 screen)
+- Consent (2 screens)
+- Device Flow (4 screens)
+- Email Challenges (2 screens)
+- MFA family (30+ screens)
+- Login/Signup (10+ screens)
+- Reset Password (15+ screens)
+- And more...
+
+#### 4. `getAvailableScreens()`
+
+Scans `src/samples/` directory for available screens:
+
+```javascript
+const screens = getAvailableScreens();
+// Returns: ['login', 'signup', 'mfa-otp-challenge', ...]
+```
+
+**Filters:**
+- Only `.tsx` files
+- Excludes `.wrapper.tsx` files
+- Removes file extensions
+
+### Usage Example
+
+```javascript
+import { 
+  validateAuth0Config, 
+  getManagementToken, 
+  getPromptAndScreen, 
+  getAvailableScreens 
+} from './auth0-utils.js';
+
+// Validate environment
+validateAuth0Config(AUTH0_DOMAIN, CLIENT_ID, CLIENT_SECRET);
+
+// Get auth token
+const token = await getManagementToken(AUTH0_DOMAIN, CLIENT_ID, CLIENT_SECRET);
+
+// Get screens to process
+const screens = getAvailableScreens();
+
+// Process each screen
+for (const screenFileName of screens) {
+  const { prompt, screen } = getPromptAndScreen(screenFileName);
+  // Deploy or cleanup...
+}
+```
+
+### Benefits
+
+✅ **Single Source of Truth** - Screen mappings defined once  
+✅ **Reduced Code** - 30% reduction in total lines  
+✅ **Easier Maintenance** - Update once, affects both deploy and cleanup  
+✅ **Better Organization** - Shared logic isolated from business logic  
+✅ **Consistency** - Both systems use identical mapping and validation
 
 ## Sample Fixes
 
@@ -575,8 +710,7 @@ PORT=5500  # Default: 5500
   "clean": "rm -rf dist src/samples/*.tsx src/samples/*.ts src/samples/*.json",
   "fetch": "npm run clean && node scripts/fetch-samples.js --",
   "fetch:react": "npm run clean && node scripts/fetch-samples.js --react --",
-  "serve": "node scripts/build-samples.js && node scripts/deploy-to-auth0.js && node scripts/serve.js",
-  "stop": "node scripts/stop-server.js"
+  "start": "node scripts/stop-server.js & node scripts/build-samples.js && node scripts/deploy-to-auth0.js && node scripts/serve.js"
 }
 ```
 
@@ -595,13 +729,13 @@ npm run fetch:react signup mfa   # Fetch React samples matching "signup" OR "mfa
 npm run fetch           # JavaScript samples
 npm run fetch:react     # React samples
 
-# 2. Build, deploy, and serve (all-in-one)
-npm run serve
+# 2. Stop running server, build, deploy, and serve (all-in-one)
+npm run start
 
 # 3. Test login flow
 # Visit your application and trigger login
 
-# 4. Stop server when done
+# 4. Stop server when done and clean up Auth0 ACUL settings
 npm run stop
 ```
 

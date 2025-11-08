@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-import { writeFileSync, mkdirSync, existsSync, readFileSync, rmSync } from 'fs';
+import { writeFileSync, mkdirSync, existsSync, readFileSync, rmSync, readdirSync } from 'fs';
 import { join, dirname } from 'path';
 import { fileURLToPath } from 'url';
 import { execSync } from 'child_process';
@@ -54,8 +54,13 @@ if (existsSync(versionsFile)) {
 
 if (!existsSync(OUTPUT_DIR)) mkdirSync(OUTPUT_DIR, { recursive: true });
 
-const manifest = JSON.parse(readFileSync(join(SAMPLES_DIR, 'manifest.json'), 'utf-8'));
-const samples = Object.keys(manifest);
+// Read actual .tsx files from directory instead of manifest
+// This allows users to delete samples they don't need
+const allFiles = readdirSync(SAMPLES_DIR);
+const samples = allFiles
+  .filter(file => file.endsWith('.tsx'))
+  .filter(file => !file.includes('.wrapper.')) // Exclude wrapper files
+  .map(file => file.replace('.tsx', ''));
 
 console.log('CSS...');
 execSync(`npx tailwindcss -i ./src/samples-styles.css -o ${join(OUTPUT_DIR, 'styles.css')} --minify`, { stdio: 'inherit' });

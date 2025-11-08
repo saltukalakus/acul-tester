@@ -7,7 +7,7 @@
     "clean": "rm -rf dist src/samples/*.tsx src/samples/*.ts src/samples/*.json",
     "fetch": "npm run clean && node scripts/fetch-samples.js --",
     "fetch:react": "npm run clean && node scripts/fetch-samples.js --react --",
-    "serve": "node scripts/build-samples.js && node scripts/deploy-to-auth0.js && node scripts/serve.js",
+    "start": "node scripts/stop-server.js && node scripts/build-samples.js && node scripts/deploy-to-auth0.js && node scripts/serve.js",
     "stop": "node scripts/stop-server.js"
   },
   "keywords": [

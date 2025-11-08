@@ -25,23 +25,23 @@ cp .env.example .env
 npm run fetch       # Fetch all JavaScript samples
 npm run fetch:react  # Fetch all React samples
 
-# Build, deploy to Auth0 tenant and serve
-npm run serve
+# Stop aby running server, build, deploy to Auth0 tenant and serve again
+npm run start
 
-# Stop the server
+# Stop the server and cleanup Auth0 tenant ACUL settings
 npm run stop
 
 Server runs on `http://localhost:PORT` (default: 5500, configurable in `.env`)
 
 ## Available Commands
 
-| Command | Description |
-|---------|-------------|
-| `npm run fetch` | Fetch all JavaScript samples (cleans previous) |
-| `npm run fetch:react` | Fetch all React samples (cleans previous) |
-| `npm run serve` | Build, deploy and start the server (default port: 5500) |
-| `npm run stop` | Stop the running server |
-| `npm run clean` | Remove built files and fetched samples |
+| Command               | Description                                               |
+|-----------------------|-----------------------------------------------------------|
+| `npm run fetch`       | Fetch all JavaScript samples (cleans previous)            |
+| `npm run fetch:react` | Fetch all React samples (cleans previous)                 |
+| `npm run serve`       | Build, deploy and restart the server (default port: 5500) |
+| `npm run stop`        | Stop the running server and cleanup ACUL settings         |
+| `npm run clean`       | Remove built files and fetched samples                    |
 
 ### Filtering Samples
 
@@ -104,33 +104,6 @@ Static Express server with CORS enabled, serving assets from `dist/` on configur
 Uses Auth0 Management API to configure each Universal Login screen with:
 - CSS: `<link rel="stylesheet" href="http://localhost:{PORT}/v-{hash}/styles.css">`
 - JS: `<script type="module" src="http://localhost:{PORT}/v-{hash}/{screen}/component.js"></script>`
-
-## Project Structure
-
-```
-acul-tester/
-├── scripts/
-│   ├── fetch-samples.js     # Downloads samples from GitHub
-│   ├── fix-samples.js       # Applies automatic fixes
-│   ├── build-samples.js     # Builds CSS and JS modules
-│   ├── serve.js             # Static file server
-│   ├── deploy-to-auth0.js   # Deploys to Auth0 tenant
-│   └── stop-server.js       # Stops running server
-├── components/              # Mock components (tracked in git)
-│   ├── Logo.tsx
-│   └── Button.tsx
-├── src/
-│   ├── samples/             # Fetched samples (gitignored)
-│   │   ├── components/      # Sample-specific mocks (tracked)
-│   │   ├── *.tsx            # Fetched components
-│   │   └── manifest.json
-│   └── samples-styles.css   # Tailwind source
-├── dist/                    # Built assets (gitignored)
-│   └── v-{hash}/
-│       ├── styles.css
-│       └── {screen}/component.js
-└── .env                     # Configuration (gitignored)
-```
 
 ## Resources
 
