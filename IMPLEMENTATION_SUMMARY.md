@@ -327,18 +327,146 @@ Works for both JS and React samples automatically.
 
 ### Screen to Prompt Mapping
 
-Complete mapping of 81 screens to Auth0 prompt/screen combinations:
+Complete mapping of all 81 screens to Auth0 prompt/screen API combinations. The deploy script uses this mapping to call the correct Management API endpoints.
 
-```javascript
-const PROMPT_SCREEN_MAP = {
-  'login': { prompt: 'login', screen: 'login' },
-  'login-id': { prompt: 'login-id', screen: 'login-id' },
-  'mfa-otp-challenge': { prompt: 'mfa-otp', screen: 'mfa-otp-challenge' },
-  // ... 78 more mappings
-};
+**Format:** `screen-file-name` → `prompt/screen`
+
+#### Captcha (1 screen)
+- `interstitial-captcha` → `captcha/interstitial-captcha`
+
+#### Common (1 screen)
+- `redeem-ticket` → `common/redeem-ticket`
+
+#### Consent (2 screens)
+- `consent` → `consent/consent`
+- `customized-consent` → `customized-consent/customized-consent`
+
+#### Device Flow (4 screens)
+- `device-code-activation` → `device-flow/device-code-activation`
+- `device-code-activation-allowed` → `device-flow/device-code-activation-allowed`
+- `device-code-activation-denied` → `device-flow/device-code-activation-denied`
+- `device-code-confirmation` → `device-flow/device-code-confirmation`
+
+#### Email Challenges (2 screens)
+- `email-identifier-challenge` → `email-identifier-challenge/email-identifier-challenge`
+- `email-otp-challenge` → `email-otp-challenge/email-otp-challenge`
+
+#### Email Verification (1 screen)
+- `email-verification-result` → `email-verification/email-verification-result`
+
+#### Invitation (1 screen)
+- `accept-invitation` → `invitation/accept-invitation`
+
+#### Login (4 screens)
+- `login` → `login/login`
+- `login-email-verification` → `login-email-verification/login-email-verification`
+- `login-id` → `login-id/login-id`
+- `login-password` → `login-password/login-password`
+
+#### Login Passwordless (2 screens)
+- `login-passwordless-email-code` → `login-passwordless/login-passwordless-email-code`
+- `login-passwordless-sms-otp` → `login-passwordless/login-passwordless-sms-otp`
+
+#### Logout (3 screens)
+- `logout` → `logout/logout`
+- `logout-aborted` → `logout/logout-aborted`
+- `logout-complete` → `logout/logout-complete`
+
+#### MFA Core (4 screens)
+- `mfa-begin-enroll-options` → `mfa/mfa-begin-enroll-options`
+- `mfa-detect-browser-capabilities` → `mfa/mfa-detect-browser-capabilities`
+- `mfa-enroll-result` → `mfa/mfa-enroll-result`
+- `mfa-login-options` → `mfa/mfa-login-options`
+
+#### MFA Email (2 screens)
+- `mfa-email-challenge` → `mfa-email/mfa-email-challenge`
+- `mfa-email-list` → `mfa-email/mfa-email-list`
+
+#### MFA OTP (3 screens)
+- `mfa-otp-challenge` → `mfa-otp/mfa-otp-challenge`
+- `mfa-otp-enrollment-code` → `mfa-otp/mfa-otp-enrollment-code`
+- `mfa-otp-enrollment-qr` → `mfa-otp/mfa-otp-enrollment-qr`
+
+#### MFA Phone (2 screens)
+- `mfa-phone-challenge` → `mfa-phone/mfa-phone-challenge`
+- `mfa-phone-enrollment` → `mfa-phone/mfa-phone-enrollment`
+
+#### MFA Push (4 screens)
+- `mfa-push-challenge-push` → `mfa-push/mfa-push-challenge-push`
+- `mfa-push-enrollment-qr` → `mfa-push/mfa-push-enrollment-qr`
+- `mfa-push-list` → `mfa-push/mfa-push-list`
+- `mfa-push-welcome` → `mfa-push/mfa-push-welcome`
+
+#### MFA Recovery Code (3 screens)
+- `mfa-recovery-code-challenge` → `mfa-recovery-code/mfa-recovery-code-challenge`
+- `mfa-recovery-code-challenge-new-code` → `mfa-recovery-code/mfa-recovery-code-challenge-new-code`
+- `mfa-recovery-code-enrollment` → `mfa-recovery-code/mfa-recovery-code-enrollment`
+
+#### MFA SMS (4 screens)
+- `mfa-country-codes` → `mfa-sms/mfa-country-codes`
+- `mfa-sms-challenge` → `mfa-sms/mfa-sms-challenge`
+- `mfa-sms-enrollment` → `mfa-sms/mfa-sms-enrollment`
+- `mfa-sms-list` → `mfa-sms/mfa-sms-list`
+
+#### MFA Voice (2 screens)
+- `mfa-voice-challenge` → `mfa-voice/mfa-voice-challenge`
+- `mfa-voice-enrollment` → `mfa-voice/mfa-voice-enrollment`
+
+#### MFA WebAuthn (8 screens)
+- `mfa-webauthn-change-key-nickname` → `mfa-webauthn/mfa-webauthn-change-key-nickname`
+- `mfa-webauthn-enrollment-success` → `mfa-webauthn/mfa-webauthn-enrollment-success`
+- `mfa-webauthn-error` → `mfa-webauthn/mfa-webauthn-error`
+- `mfa-webauthn-not-available-error` → `mfa-webauthn/mfa-webauthn-not-available-error`
+- `mfa-webauthn-platform-challenge` → `mfa-webauthn/mfa-webauthn-platform-challenge`
+- `mfa-webauthn-platform-enrollment` → `mfa-webauthn/mfa-webauthn-platform-enrollment`
+- `mfa-webauthn-roaming-challenge` → `mfa-webauthn/mfa-webauthn-roaming-challenge`
+- `mfa-webauthn-roaming-enrollment` → `mfa-webauthn/mfa-webauthn-roaming-enrollment`
+
+#### Organizations (2 screens)
+- `organization-picker` → `organizations/organization-picker`
+- `organization-selection` → `organizations/organization-selection`
+
+#### Passkeys (2 screens)
+- `passkey-enrollment` → `passkeys/passkey-enrollment`
+- `passkey-enrollment-local` → `passkeys/passkey-enrollment-local`
+
+#### Phone Identifier (2 screens)
+- `phone-identifier-challenge` → `phone-identifier-challenge/phone-identifier-challenge`
+- `phone-identifier-enrollment` → `phone-identifier-enrollment/phone-identifier-enrollment`
+
+#### Reset Password (14 screens)
+- `reset-password` → `reset-password/reset-password`
+- `reset-password-email` → `reset-password/reset-password-email`
+- `reset-password-error` → `reset-password/reset-password-error`
+- `reset-password-mfa-email-challenge` → `reset-password/reset-password-mfa-email-challenge`
+- `reset-password-mfa-otp-challenge` → `reset-password/reset-password-mfa-otp-challenge`
+- `reset-password-mfa-phone-challenge` → `reset-password/reset-password-mfa-phone-challenge`
+- `reset-password-mfa-push-challenge-push` → `reset-password/reset-password-mfa-push-challenge-push`
+- `reset-password-mfa-recovery-code-challenge` → `reset-password/reset-password-mfa-recovery-code-challenge`
+- `reset-password-mfa-sms-challenge` → `reset-password/reset-password-mfa-sms-challenge`
+- `reset-password-mfa-voice-challenge` → `reset-password/reset-password-mfa-voice-challenge`
+- `reset-password-mfa-webauthn-platform-challenge` → `reset-password/reset-password-mfa-webauthn-platform-challenge`
+- `reset-password-mfa-webauthn-roaming-challenge` → `reset-password/reset-password-mfa-webauthn-roaming-challenge`
+- `reset-password-request` → `reset-password/reset-password-request`
+- `reset-password-success` → `reset-password/reset-password-success`
+
+#### Signup (3 screens)
+- `signup` → `signup/signup`
+- `signup-id` → `signup-id/signup-id`
+- `signup-password` → `signup-password/signup-password`
+
+**API Endpoint Format:**
+```
+PATCH https://{domain}/api/v2/prompts/{prompt}/screen/{screen}/rendering
 ```
 
-See [SCREEN_MAPPINGS.md](./SCREEN_MAPPINGS.md) for complete list.
+**Example:**
+```bash
+# Deploy MFA OTP enrollment screen
+npm run deploy:screen mfa-otp-enrollment-code
+
+# Calls: PATCH /api/v2/prompts/mfa-otp/screen/mfa-otp-enrollment-code/rendering
+```
 
 ### Rate Limiting
 

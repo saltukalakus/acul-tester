@@ -129,8 +129,7 @@ acul-tester/
 
 ## Resources
 
-- [Screen Mappings](./SCREEN_MAPPINGS.md) - Complete list of all 81 screens and their Auth0 API mappings
-- [Implementation Details](./IMPLEMENTATION_SUMMARY.md) - Technical documentation and architecture
+- [Implementation Details](./IMPLEMENTATION_SUMMARY.md) - Technical documentation, architecture, and complete screen mappings
 - [Auth0 Universal Login Docs](https://auth0.com/docs/customize/login-pages)
 - [ACUL SDK Repository](https://github.com/auth0/universal-login)
 
