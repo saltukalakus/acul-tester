@@ -431,9 +431,6 @@ AUTH0_CLIENT_SECRET=your_m2m_client_secret
 
 # Server Configuration (optional)
 PORT=5500  # Default: 5500
-
-# CSS URL (optional, auto-generated from PORT if not set)
-CSS_URL=http://localhost:5500/styles.css
 ```
 
 ## NPM Scripts
@@ -538,7 +535,6 @@ jobs:
           AUTH0_DOMAIN: ${{ secrets.AUTH0_DOMAIN }}
           AUTH0_CLIENT_ID: ${{ secrets.AUTH0_CLIENT_ID }}
           AUTH0_CLIENT_SECRET: ${{ secrets.AUTH0_CLIENT_SECRET }}
-          CSS_URL: https://cdn.example.com/auth0/styles.css
 ```
 
 ## Performance
