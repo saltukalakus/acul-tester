@@ -1,0 +1,2 @@
+# This directory contains mock components used by Auth0 ACUL samples
+# These components resolve imports like './components/Title' from sample files
