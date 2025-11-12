@@ -9,7 +9,8 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
 // Command line arguments - extract pattern arguments
-const patterns = process.argv.slice(2);
+// Filter out '--' which npm adds as a separator
+const patterns = process.argv.slice(2).filter(arg => arg !== '--');
 
 /**
  * Get installed package version from package.json

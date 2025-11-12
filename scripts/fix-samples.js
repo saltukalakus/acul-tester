@@ -74,6 +74,23 @@ try {
   // File might not exist
 }
 
+// Fix login-id.tsx - broken sample with undefined variable
+const loginIdPath = join(SAMPLES_DIR, 'login-id.tsx');
+try {
+  let loginIdCode = readFileSync(loginIdPath, 'utf-8');
+  // Check if it has the broken pattern (uses alternateConnections without loginIdManager.transaction)
+  if (loginIdCode.includes('const selectedConnection = alternateConnections[0]')) {
+    loginIdCode = loginIdCode.replace(
+      /const selectedConnection = alternateConnections\[0\];/,
+      'const selectedConnection = loginIdManager.transaction.alternateConnections[0];'
+    );
+    writeFileSync(loginIdPath, loginIdCode, 'utf-8');
+    console.log('  ✓ Fixed login-id.tsx (undefined alternateConnections)');
+  }
+} catch (err) {
+  // File might not exist
+}
+
 // Fix mfa-push-welcome.tsx - typo in import statement (double 'i')
 const mfaPushWelcomePath = join(SAMPLES_DIR, 'mfa-push-welcome.tsx');
 try {
